@@ -1,4 +1,4 @@
-# Processing Library
+# Processing Game Framework
 
 This library offers a collection of tools and classes designed to simplify game development with the Processing framework. Below are the primary features and their respective packages:
 
