@@ -47,3 +47,10 @@ This library offers a collection of tools and classes designed to simplify game 
      - `loadImageFromResource`: Loads an image from a specified resource path.
      - `smoothMoveTowards`: Smoothly moves a value towards a target using a sigmoid function.
      - `smoothMoveTowardsAngle`: Smoothly moves an angle towards a target angle, considering the shortest path in degrees.
+
+## License
+
+This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
+
+This project uses the Processing library, which is licensed under the [GNU Lesser General Public License (LGPL)](https://github.com/processing/processing4/blob/main/LICENSE.md). Any modifications to the Processing library are also released under the LGPL.
+
