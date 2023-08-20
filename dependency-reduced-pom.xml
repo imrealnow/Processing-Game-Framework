@@ -1,44 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>green.liam</groupId>
   <artifactId>processing-game-framework</artifactId>
-  <version>0.1</version>
-
   <name>processing-game-framework</name>
-
-  <properties>
-    <maven.compiler.source>20</maven.compiler.source>
-    <maven.compiler.target>20</maven.compiler.target>
-    <sketchbook.location>${user.home}/Documents/Processing</sketchbook.location>
-    <processing.core.jar.location>${project.basedir}/lib/core.jar</processing.core.jar.location>
-    <library.target.dir>${sketchbook.location}/libraries/${project.name}</library.target.dir>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.processing</groupId>
-      <artifactId>core</artifactId>
-      <version>0.0</version>
-      <scope>system</scope>
-      <systemPath>${processing.core.jar.location}</systemPath>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.3.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
+  <version>0.1</version>
   <build>
     <plugins>
-      <!-- maven-shade-plugin -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
@@ -53,13 +22,10 @@
           </execution>
         </executions>
       </plugin>
-
-      <!-- maven-resources-plugin -->
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.6</version>
         <executions>
-          <!-- copy-data -->
           <execution>
             <id>copy-data</id>
             <phase>package</phase>
@@ -76,8 +42,6 @@
               </resources>
             </configuration>
           </execution>
-
-          <!-- copy-examples -->
           <execution>
             <id>copy-examples</id>
             <phase>package</phase>
@@ -94,8 +58,6 @@
               </resources>
             </configuration>
           </execution>
-
-          <!-- copy-lib -->
           <execution>
             <id>copy-lib</id>
             <phase>package</phase>
@@ -107,14 +69,11 @@
               <resources>
                 <resource>
                   <directory>${project.basedir}/lib</directory>
-                  <!-- Turn off filtering for binary file -->
                   <filtering>false</filtering>
                 </resource>
               </resources>
             </configuration>
           </execution>
-
-          <!-- copy-src -->
           <execution>
             <id>copy-src</id>
             <phase>package</phase>
@@ -131,9 +90,44 @@
               </resources>
             </configuration>
           </execution>
-
         </executions>
       </plugin>
     </plugins>
   </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.3.1</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>apiguardian-api</artifactId>
+          <groupId>org.apiguardian</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>opentest4j</artifactId>
+          <groupId>org.opentest4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>junit-platform-commons</artifactId>
+          <groupId>org.junit.platform</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.processing</groupId>
+      <artifactId>core</artifactId>
+      <version>0.0</version>
+      <scope>system</scope>
+      <systemPath>${processing.core.jar.location}</systemPath>
+    </dependency>
+  </dependencies>
+  <properties>
+    <maven.compiler.target>20</maven.compiler.target>
+    <processing.core.jar.location>${project.basedir}/lib/core.jar</processing.core.jar.location>
+    <sketchbook.location>${user.home}/Documents/Processing</sketchbook.location>
+    <maven.compiler.source>20</maven.compiler.source>
+    <library.target.dir>${sketchbook.location}/libraries/${project.name}</library.target.dir>
+  </properties>
 </project>
