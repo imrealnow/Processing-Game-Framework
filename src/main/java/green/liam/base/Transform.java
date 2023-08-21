@@ -1,5 +1,6 @@
 package green.liam.base;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import green.liam.rendering.Camera;
@@ -8,22 +9,19 @@ import processing.core.PMatrix2D;
 import processing.core.PVector;
 
 public class Transform extends Component {
+    protected static final Transform IDENTITY = new RootTransform();
+
+    protected Transform parent;
     protected PVector position = new PVector();
     protected float height = 0f;
     protected float rotation = 0f;
     protected PVector scale = new PVector(1, 1, 1);
-    protected Transform parent;
     protected Set<Transform> children = new HashSet<>();
 
     protected PMatrix2D scaleMatrix = new PMatrix2D();
     protected PMatrix2D rotationMatrix = new PMatrix2D();
     protected PMatrix2D translationMatrix = new PMatrix2D();
     protected PMatrix2D transformationMatrix = new PMatrix2D();
-
-    public Transform(GameObject gameObject) {
-        super(gameObject);
-        this.recalculateMatrix();
-    }
 
     public Transform(GameObject gameObject, Transform parent) {
         super(gameObject);
@@ -32,12 +30,16 @@ public class Transform extends Component {
         this.recalculateMatrix();
     }
 
+    public Transform(GameObject gameObject) {
+        this(gameObject, IDENTITY);
+    }
+
     public Transform getParent() {
         return this.parent;
     }
 
     public Set<Transform> getChildren() {
-        return this.children;
+        return Collections.unmodifiableSet(this.children);
     }
 
     public void addChild(Transform child) {
@@ -203,3 +205,5 @@ public class Transform extends Component {
         return translatedVector;
     }
 }
+
+
