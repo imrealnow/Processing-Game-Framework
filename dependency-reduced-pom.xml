@@ -124,10 +124,11 @@
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.target>20</maven.compiler.target>
+    <maven.compiler.target>17</maven.compiler.target>
     <processing.core.jar.location>${project.basedir}/lib/core.jar</processing.core.jar.location>
     <sketchbook.location>${user.home}/Documents/Processing</sketchbook.location>
-    <maven.compiler.source>20</maven.compiler.source>
+    <maven.compiler.source>17</maven.compiler.source>
     <library.target.dir>${sketchbook.location}/libraries/${project.name}</library.target.dir>
+    <encoding>UTF-8</encoding>
   </properties>
 </project>
