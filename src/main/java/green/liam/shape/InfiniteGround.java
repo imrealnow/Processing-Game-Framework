@@ -1,6 +1,7 @@
 package green.liam.shape;
 
 import green.liam.base.Transform;
+import green.liam.rendering.Camera;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
@@ -54,7 +55,7 @@ public class InfiniteGround extends Shape {
     }
 
     @Override
-    public float getDepth() {
+    public float getDepth(Camera camera) {
         return Float.MIN_VALUE;
     }
 }

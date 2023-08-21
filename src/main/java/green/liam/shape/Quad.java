@@ -1,6 +1,7 @@
 package green.liam.shape;
 
 import green.liam.base.Game;
+import green.liam.rendering.Camera;
 import green.liam.rendering.Renderable;
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -116,7 +117,7 @@ public class Quad implements Renderable {
     }
 
     @Override
-    public float getDepth() {
+    public float getDepth(Camera camera) {
         if (this.isVertical) {
             PVector start, end;
             start = this.leadingEdge.start().translatedPosition();

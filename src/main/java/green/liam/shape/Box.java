@@ -2,7 +2,9 @@ package green.liam.shape;
 
 import java.util.Collection;
 import java.util.Set;
+import green.liam.base.Game;
 import green.liam.base.Transform;
+import green.liam.rendering.Camera;
 import green.liam.rendering.CompositeRenderable;
 import green.liam.rendering.Renderable;
 import processing.core.PApplet;
@@ -141,8 +143,9 @@ public class Box extends Shape implements CompositeRenderable {
 
     public float getAverageDepth() {
         float depthSum = 0;
+        Camera camera = Game.getInstance().getCamera();
         for (Quad face : this.faces) {
-            depthSum += face.getDepth();
+            depthSum += face.getDepth(camera);
         }
         return depthSum / this.faces.length;
     }

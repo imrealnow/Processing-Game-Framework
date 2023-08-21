@@ -1,5 +1,6 @@
 package green.liam.rendering;
 
+import green.liam.base.Game;
 import processing.core.PApplet;
 
 public interface Renderable extends Comparable<Renderable> {
@@ -10,10 +11,11 @@ public interface Renderable extends Comparable<Renderable> {
      * 
      * @return transformed center y position of the object on the ground.
      */
-    float getDepth();
+    float getDepth(Camera camera);
 
     @Override
     default int compareTo(Renderable other) {
-        return Float.compare(this.getDepth(), other.getDepth());
+        Camera camera = Game.getInstance().getCamera();
+        return Float.compare(this.getDepth(camera), other.getDepth(camera));
     }
 }

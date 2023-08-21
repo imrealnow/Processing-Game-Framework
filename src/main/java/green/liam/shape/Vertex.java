@@ -1,6 +1,8 @@
 package green.liam.shape;
 
+import green.liam.base.Game;
 import green.liam.base.Transform;
+import green.liam.rendering.Camera;
 import processing.core.PVector;
 
 public class Vertex {
@@ -24,7 +26,8 @@ public class Vertex {
 
     public PVector translatedPosition() {
         PVector position = this.position();
-        return Transform.inverseTranslateVector(position).add(0,
+        Camera camera = Game.getInstance().getCamera();
+        return Transform.inverseTranslateVector(camera, position).add(0,
                 -(this.height + this.transform.height()) * this.transform.yScale());
     }
 
