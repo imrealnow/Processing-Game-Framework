@@ -3,6 +3,11 @@ package green.liam.base;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import green.liam.events.EventManager;
+import green.liam.events.EventManagerFactory;
+import green.liam.events.Observer;
+import green.liam.events.TransformChangeEvent;
+import green.liam.events.TransformChangeEvent.ChangeType;
 import green.liam.rendering.Camera;
 import green.liam.util.Helper;
 import processing.core.PMatrix2D;
@@ -10,6 +15,9 @@ import processing.core.PVector;
 
 public class Transform extends Component {
     protected static final Transform IDENTITY = new RootTransform();
+
+    protected final EventManager<TransformChangeEvent> changeEventManager =
+            EventManagerFactory.getEventManager(TransformChangeEvent.class);
 
     protected Transform parent;
     protected PVector position = new PVector();
@@ -21,7 +29,7 @@ public class Transform extends Component {
     protected PMatrix2D scaleMatrix = new PMatrix2D();
     protected PMatrix2D rotationMatrix = new PMatrix2D();
     protected PMatrix2D translationMatrix = new PMatrix2D();
-    protected PMatrix2D transformationMatrix = new PMatrix2D();
+    protected PMatrix2D combinedMatrix = new PMatrix2D();
 
     public Transform(GameObject gameObject, Transform parent) {
         super(gameObject);
@@ -58,102 +66,97 @@ public class Transform extends Component {
         }
     }
 
+    public void addChangeObserver(Observer<TransformChangeEvent> observer) {
+        this.changeEventManager.addObserver(observer);
+    }
+
+    public void removeChangeObserver(Observer<TransformChangeEvent> observer) {
+        this.changeEventManager.removeObserver(observer);
+    }
+
     @Override
     public GameObject gameObject() {
         return this.gameObject;
     }
 
     public PVector position() {
-        if (this.parent != null)
-            return PVector.add(this.parent.position(), this.position);
-        return this.position.copy();
+        return PVector.add(this.parent.position(), this.position);
     }
 
     public PVector screenPosition() {
         PVector copy = this.position.copy();
-        return Transform.translateVector(copy).add(0, this.height());
+        Camera camera = Game.getInstance().getCamera();
+        return Transform.translateVector(camera, copy).add(0, this.height());
     }
 
     public float rotation() {
-        if (this.parent != null)
-            return this.parent.rotation() + this.rotation;
-        return this.rotation;
+        return this.parent.rotation() + this.rotation;
     }
 
     public PVector scale() {
-        if (this.parent != null)
-            return new PVector(this.parent.scale().x * this.scale.x,
-                    this.parent.scale().y * this.scale.y, this.parent.scale().z * this.scale.z);
-        return this.scale.copy();
+        PVector parentScale = this.parent.scale();
+        return new PVector(this.scale.x * parentScale.x, this.scale.y * parentScale.y,
+                this.scale.z * parentScale.z);
     }
 
     public float yScale() {
-        if (this.parent != null)
-            return this.parent.yScale() * this.scale.y;
-        return this.scale.y;
+        return this.parent.yScale() * this.scale.y;
     }
 
     public float height() {
-        if (this.parent != null)
-            return this.parent.height() + this.height;
-        return this.height;
+        return this.parent.height() + this.height;
     }
 
     public float setHeight(float height) {
+        this.changeEventManager
+                .notify(new TransformChangeEvent(this, ChangeType.HEIGHT, this.height, height));
         this.height = height;
         return this.height;
     }
 
     public void setParent(Transform parent) {
-        this.parent = parent;
+        this.changeEventManager
+                .notify(new TransformChangeEvent(this, ChangeType.PARENT, this.parent, parent));
+        this.parent.children.remove(this);
+        this.parent = parent == null ? IDENTITY : parent;
         this.recalculateMatrix();
     }
 
     public void setPosition(PVector position) {
+        this.changeEventManager.notify(
+                new TransformChangeEvent(this, ChangeType.POSITION, this.position, position));
         this.position = position;
         this.recalculateMatrix();
     }
 
     public void setRotation(float rotation) {
+        this.changeEventManager.notify(
+                new TransformChangeEvent(this, ChangeType.ROTATION, this.rotation, rotation));
         this.rotation = rotation;
         this.recalculateMatrix();
     }
 
     public void setScale(PVector scale) {
+        this.changeEventManager
+                .notify(new TransformChangeEvent(this, ChangeType.SCALE, this.scale, scale));
         this.scale = scale;
         this.recalculateMatrix();
     }
 
     public void setLocalPosition(PVector position) {
-        if (this.parent != null) {
-            PVector parentPosition = this.parent.position();
-            this.position = PVector.sub(position, parentPosition);
-        } else {
-            this.position = position;
-        }
-        this.recalculateMatrix();
+        this.setPosition(PVector.sub(position, this.parent.position()));
     }
 
     public void setLocalRotation(float rotation) {
-        if (this.parent != null) {
-            this.rotation = rotation - this.parent.rotation();
-        } else {
-            this.rotation = rotation;
-        }
-        this.recalculateMatrix();
+        this.setRotation(rotation - this.parent.rotation());
     }
 
     public void setLocalScale(PVector scale) {
-        if (this.parent != null) {
-            PVector parentScale = this.parent.scale();
-
-            this.scale = new PVector(Helper.safeDivide(scale.x, parentScale.x),
-                    Helper.safeDivide(scale.y, parentScale.y),
-                    Helper.safeDivide(scale.z, parentScale.z));
-        } else {
-            this.scale = scale;
-        }
-        this.recalculateMatrix();
+        PVector parentScale = this.parent.scale();
+        PVector newScale = new PVector(Helper.safeDivide(scale.x, parentScale.x),
+                Helper.safeDivide(scale.y, parentScale.y),
+                Helper.safeDivide(scale.z, parentScale.z));
+        this.setScale(newScale);
     }
 
     private void recalculateMatrix() {
@@ -165,40 +168,39 @@ public class Transform extends Component {
         this.translationMatrix.translate(this.position.x, this.position.y);
 
 
-        PMatrix2D combinedMatrix = new PMatrix2D();
-        combinedMatrix.apply(this.scaleMatrix);
-        combinedMatrix.apply(this.translationMatrix);
+        this.combinedMatrix = new PMatrix2D();
+        this.combinedMatrix.apply(this.scaleMatrix);
+        this.combinedMatrix.apply(this.translationMatrix);
 
         if (this.parent != null) {
-            combinedMatrix.preApply(this.parent.getTransformationMatrix());
+            this.combinedMatrix.preApply(this.parent.getCombinedMatrix());
         }
 
-        this.transformationMatrix = combinedMatrix;
         this.updateChildren();
     }
 
-    public PMatrix2D getTransformationMatrix() {
-        return this.transformationMatrix;
+    public PMatrix2D getCombinedMatrix() {
+        return this.combinedMatrix;
     }
 
     public PVector transformVertex(PVector vertex) {
         PVector transformedVertex = new PVector();
-        PMatrix2D matrixCopy = this.transformationMatrix.get();
+        PMatrix2D matrixCopy = this.combinedMatrix.get();
         matrixCopy.translate(this.position.x, this.position.y);
         matrixCopy.rotate((float) Math.toRadians(this.rotation));
         matrixCopy.mult(vertex, transformedVertex);
         return transformedVertex;
     }
 
-    public static PVector translateVector(PVector vector) {
-        PMatrix2D cameraMatrix = Camera.MAIN.getMatrix();
+    public static PVector translateVector(Camera camera, PVector vector) {
+        PMatrix2D cameraMatrix = camera.getMatrix();
         PVector translatedVector = new PVector();
         cameraMatrix.mult(vector, translatedVector);
         return translatedVector;
     }
 
-    public static PVector inverseTranslateVector(PVector vector) {
-        PMatrix2D cameraMatrix = Camera.MAIN.getMatrix();
+    public static PVector inverseTranslateVector(Camera camera, PVector vector) {
+        PMatrix2D cameraMatrix = camera.getMatrix();
         cameraMatrix.invert();
         PVector translatedVector = new PVector();
         cameraMatrix.mult(vector, translatedVector);

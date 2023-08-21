@@ -15,6 +15,11 @@ public class EventManager<T> {
     }
 
     public void notify(T event) {
+        if (event == null)
+            throw new IllegalArgumentException("Event cannot be null");
+        if (this.observers.size() == 0)
+            return;
+
         Set<Observer<T>> observersCopy = new HashSet<>(this.observers);
         for (Observer<T> observer : observersCopy) {
             observer.onNotify(event);
