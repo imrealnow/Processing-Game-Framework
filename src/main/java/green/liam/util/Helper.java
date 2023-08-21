@@ -1,31 +1,10 @@
 package green.liam.util;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import javax.imageio.ImageIO;
-import processing.core.PImage;
-
 public class Helper {
     public static float safeDivide(float a, float b) {
         if (b == 0)
             return 0;
         return a / b;
-    }
-
-    public static PImage loadImageFromResource(String path) {
-        try {
-            BufferedImage bufferedImage =
-                    ImageIO.read(Helper.class.getResourceAsStream("/" + path));
-
-            // Convert BufferedImage to PImage
-            PImage resultingImage = new PImage(bufferedImage);
-            return resultingImage;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Failed to load the image: " + path);
-            return null;
-        }
     }
 
     public static Class<?> getPrimitiveClass(Class<?> wrapperType) {
