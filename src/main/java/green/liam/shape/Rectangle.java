@@ -55,6 +55,4 @@ public class Rectangle extends Shape {
         this.edges[2] = new Edge(this.vertices[2], this.vertices[3]);
         this.edges[3] = new Edge(this.vertices[3], this.vertices[0]);
     }
-
-
 }

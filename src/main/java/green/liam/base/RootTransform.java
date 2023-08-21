@@ -6,9 +6,7 @@ import processing.core.PVector;
  * The root transform is a special transform that acts as the root of the transform hierarchy.
  */
 public class RootTransform extends Transform {
-    RootTransform() {
-        super(null);
-    }
+    RootTransform() {}
 
     @Override
     public PVector position() {

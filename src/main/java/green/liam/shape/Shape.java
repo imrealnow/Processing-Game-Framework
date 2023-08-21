@@ -3,6 +3,7 @@ package green.liam.shape;
 import green.liam.base.Game;
 import green.liam.base.GameObject;
 import green.liam.base.Transform;
+import green.liam.rendering.Camera;
 import green.liam.rendering.Renderable;
 import processing.core.PApplet;
 import processing.core.PVector;
@@ -57,8 +58,8 @@ public abstract class Shape extends GameObject implements Renderable {
     }
 
     @Override
-    public float getDepth() {
+    public float getDepth(Camera camera) {
         PVector pos = this.transform.position();
-        return Transform.inverseTranslateVector(pos).y;
+        return Transform.inverseTranslateVector(camera, pos).y;
     }
 }

@@ -19,7 +19,7 @@ public class Transform extends Component {
     protected final EventManager<TransformChangeEvent> changeEventManager =
             EventManagerFactory.getEventManager(TransformChangeEvent.class);
 
-    protected Transform parent;
+    protected Transform parent = IDENTITY;
     protected PVector position = new PVector();
     protected float height = 0f;
     protected float rotation = 0f;
@@ -34,12 +34,17 @@ public class Transform extends Component {
     public Transform(GameObject gameObject, Transform parent) {
         super(gameObject);
         this.parent = parent;
-        this.parent.addChild(this);
+        if (parent != null)
+            this.parent.addChild(this);
         this.recalculateMatrix();
     }
 
     public Transform(GameObject gameObject) {
         this(gameObject, IDENTITY);
+    }
+
+    public Transform() {
+        this(null, IDENTITY);
     }
 
     public Transform getParent() {
