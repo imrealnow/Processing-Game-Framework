@@ -19,4 +19,10 @@ public class Regular2DProjector implements CameraProjector {
     public float getYScale() {
         return 0f;
     }
+
+    @Override
+    public float depthAlpha() {
+        // only consider transform height to calculate depth
+        return 1f;
+    }
 }

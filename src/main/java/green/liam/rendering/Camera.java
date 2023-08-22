@@ -21,6 +21,10 @@ public class Camera extends GameObject implements Observer<TransformChangeEvent>
         return this.currentProjector.getYScale();
     }
 
+    public float depthAlpha() {
+        return this.currentProjector.depthAlpha();
+    }
+
     private void updateMatrix() {
         this.projectionMatrix = this.currentProjector.getProjectionMatrix(this.transform);
     }

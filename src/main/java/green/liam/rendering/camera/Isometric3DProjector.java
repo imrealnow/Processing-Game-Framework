@@ -26,4 +26,10 @@ public class Isometric3DProjector implements CameraProjector {
     public float getYScale() {
         return 1;
     }
+
+    @Override
+    public float depthAlpha() {
+        // consider both transform height and y position to calculate depth
+        return 0.5f;
+    }
 }

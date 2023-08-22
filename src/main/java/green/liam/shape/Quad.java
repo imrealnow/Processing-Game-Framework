@@ -132,7 +132,7 @@ public class Quad implements Renderable {
         averageHeight /= this.vertices().length;
         averagePosition /= this.vertices().length;
 
-        float alpha = 0.5f; // adjust this value as per your requirements
+        float alpha = camera.depthAlpha();
         float depth = alpha * averageHeight + (1 - alpha) * averagePosition;
 
         return depth;
