@@ -7,8 +7,9 @@ import processing.core.PImage;
 import processing.core.PVector;
 
 public class InfiniteGround extends Shape {
-    static final float RADIUS = 1000;
+    static final float RADIUS = 2000;
 
+    Transform followTarget;
     PImage texture;
     float scale;
     Quad quad;
@@ -19,14 +20,12 @@ public class InfiniteGround extends Shape {
         this.scale = scale;
         this.createQuad();
         this.quad.setTexture(this.texture);
+        this.quad.setUVScale(new PVector(this.scale, this.scale));
     }
 
     public InfiniteGround(Transform parent, PImage texture, float scale) {
-        super(parent);
-        this.texture = texture;
-        this.scale = scale;
-        this.createQuad();
-        this.quad.setTexture(this.texture);
+        this(texture, scale);
+        this.transform.setParent(parent);
     }
 
     private void createQuad() {
@@ -44,6 +43,10 @@ public class InfiniteGround extends Shape {
                 new Quad(this.vertices[0], this.vertices[1], this.vertices[2], this.vertices[3]);
     }
 
+    public void setFollowTarget(Transform followTarget) {
+        this.followTarget = followTarget;
+    }
+
     public void setTexture(PImage texture) {
         this.texture = texture;
         this.quad.setTexture(this.texture);
@@ -51,11 +54,16 @@ public class InfiniteGround extends Shape {
 
     @Override
     public void render(PApplet game) {
+        if (this.followTarget != null) {
+            this.transform.setPosition(this.followTarget.position());
+        }
+        float scaleDeterminant = this.texture.width / (RADIUS * 2f) + Float.MIN_VALUE;
+        this.quad.setUVOffset(this.followTarget.position().mult(-scaleDeterminant));
         this.quad.render(game);
     }
 
     @Override
     public float getDepth(Camera camera) {
-        return Float.MIN_VALUE;
+        return Float.NEGATIVE_INFINITY;
     }
 }
