@@ -33,7 +33,6 @@ public enum InputManager {
 
     public void addInputBinding(String name, InputBinding<?> binding) {
         this.inputBindings.put(name, binding);
-
         // If a future is waiting for this binding, complete it.
         CompletableFuture<InputBinding<?>> future = this.futureBindings.get(name);
         if (future != null) {

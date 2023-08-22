@@ -1,25 +1,28 @@
 package green.liam.rendering.camera;
 
-import green.liam.base.Game;
 import green.liam.base.Transform;
 import processing.core.PMatrix2D;
 import processing.core.PVector;
 
 public class Isometric3DProjector implements CameraProjector {
-    private static final float Y_SCALE = 2f / (float) Math.sqrt(2);
+    private static final float Y_SCALE = 1f / (float) Math.sqrt(2);
 
     @Override
     public PMatrix2D getProjectionMatrix(Transform transform) {
-        PMatrix2D matrix = new PMatrix2D();
-        float rotation = (float) Math.toRadians(transform.rotation());
-        PVector position = transform.position().rotate(rotation);
-        PVector halfScreenDimensions = Game.getInstance().getScreenDimensions().mult(0.5f);
+        PMatrix2D updatedCameraMatrix = new PMatrix2D();
+        PVector cameraPosition = transform.position();
+        float rotation = (float) Math.toRadians(transform.rotation()) * -1f;
+        // cameraPosition.rotate(rotation); // Rotate camera's position
 
-        matrix.rotate(-rotation);
-        matrix.translate(-halfScreenDimensions.x - position.x,
-                -halfScreenDimensions.y - transform.height() - position.y);
-        matrix.scale(1f, Y_SCALE);
-        return matrix;
+        updatedCameraMatrix.scale(1, Y_SCALE); // Scale
+        updatedCameraMatrix.rotate(-rotation); // Rotate
+        updatedCameraMatrix.translate(-cameraPosition.x, -cameraPosition.y); // Translate to
+        // camera's
+        // position
+        // updatedCameraMatrix.translate(-cameraPosition.x, -cameraPosition.y); // Translate back to
+        // origin
+
+        return updatedCameraMatrix;
     }
 
 }

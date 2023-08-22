@@ -19,7 +19,6 @@ public class Game extends PApplet {
     private static Game instance = null;
     private final Camera camera;
     private List<GameObject> gameObjects = new ArrayList<>();
-    private PVector screenDimensions = new PVector(800, 600);
 
     private static final int frameRate = 60;
     private static final int updateRate = 60;
@@ -36,7 +35,8 @@ public class Game extends PApplet {
         }
         instance = this;
         this.parent = parent;
-        this.camera = new Camera(new Transform(), cameraProjector);
+        this.camera = new Camera(cameraProjector);
+        this.addGameObject(this.camera);
     }
 
     /**
@@ -67,13 +67,8 @@ public class Game extends PApplet {
         return new PVector(this.parent.width, this.parent.height);
     }
 
-    @Override
-    public void settings() {
+    public void initialise() {
         Time.INSTANCE.loop("update", Game.updateRate, this::update);
-    }
-
-    @Override
-    public void setup() {
         this.parent.frameRate(Game.frameRate);
         this.parent.textureMode(NORMAL);
         ((PGraphicsOpenGL) this.parent.g).textureSampling(2);
@@ -108,6 +103,7 @@ public class Game extends PApplet {
     protected void update() {
         List<GameObject> listCopy = new ArrayList<>(this.gameObjects);
         listCopy.forEach((gameObject) -> gameObject.update());
+        Time.INSTANCE.update();
     }
 
     private PriorityQueue<Renderable> createRenderQueue() {

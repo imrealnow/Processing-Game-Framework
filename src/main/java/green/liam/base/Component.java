@@ -1,7 +1,7 @@
 package green.liam.base;
 
 public abstract class Component {
-    protected final GameObject gameObject;
+    protected GameObject gameObject;
 
     public Component(GameObject gameObject) {
         this.gameObject = gameObject;
@@ -15,5 +15,7 @@ public abstract class Component {
 
     public void start() {}
 
-    public void onDestroy() {}
+    public void onDestroy() {
+        this.gameObject = null;
+    }
 }

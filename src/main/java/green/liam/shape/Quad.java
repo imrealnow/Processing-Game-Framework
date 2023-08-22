@@ -80,8 +80,6 @@ public class Quad implements Renderable {
     }
 
     public Quad setTexture(PImage texture) {
-        System.out.println("Setting texture");
-        System.out.println(texture.width + " " + texture.height);
         this.texture = texture;
         return this;
     }
@@ -100,7 +98,6 @@ public class Quad implements Renderable {
         Vertex[] quadVertices = this.vertices();
         for (int i = 0; i < quadVertices.length; i++) {
             PVector pos = quadVertices[i].translatedPosition();
-
             // Calculate UVs based on position of vertex relative to quad's dimensions
             if (this.texture != null) {
                 PVector uv = this.vertexUVs[i].copy();
@@ -124,15 +121,15 @@ public class Quad implements Renderable {
             end = this.leadingEdge.end().translatedPosition();
             return PVector.add(start, end).mult(0.5f).y;
         } else {
-            float highest = Float.MAX_VALUE;
+            float highest = Float.MIN_VALUE;
             float heightSum = 0;
             for (Vertex v : this.vertices()) {
                 float y = v.translatedPosition().y;
                 heightSum += v.height();
-                if (y < highest)
+                if (y > highest)
                     highest = y;
             }
-            return highest + (heightSum / 4f);
+            return highest + (heightSum / 4f) * 10f;
         }
     }
 

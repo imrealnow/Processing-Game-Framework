@@ -19,6 +19,7 @@
     <library.target.dir>${sketchbook.location}/libraries/${project.name}</library.target.dir>
   </properties>
 
+
   <dependencies>
     <dependency>
       <groupId>org.processing</groupId>
@@ -26,6 +27,16 @@
       <version>0.0</version>
       <scope>system</scope>
       <systemPath>${processing.core.jar.location}</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>org.jogamp.gluegen</groupId>
+      <artifactId>gluegen-rt-main</artifactId>
+      <version>2.3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jogamp.jogl</groupId>
+      <artifactId>jogl-all-main</artifactId>
+      <version>2.3.2</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

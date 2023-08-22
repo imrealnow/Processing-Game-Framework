@@ -19,9 +19,9 @@ public class Directional2DBinding implements InputBinding<PVector> {
         float x = 0, y = 0;
 
         if (this.inputManager.isKeyDown(this.upKey))
-            y++;
-        if (this.inputManager.isKeyDown(this.downKey))
             y--;
+        if (this.inputManager.isKeyDown(this.downKey))
+            y++;
         if (this.inputManager.isKeyDown(this.leftKey))
             x--;
         if (this.inputManager.isKeyDown(this.rightKey))

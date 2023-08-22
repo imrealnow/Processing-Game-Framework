@@ -1,28 +1,29 @@
 package green.liam.rendering;
 
-import green.liam.base.Transform;
+import green.liam.base.GameObject;
 import green.liam.events.Observer;
 import green.liam.events.TransformChangeEvent;
 import green.liam.rendering.camera.CameraProjector;
 import processing.core.PMatrix2D;
 
-public class Camera implements Observer<TransformChangeEvent>, AutoCloseable {
-    private Transform transform;
+public class Camera extends GameObject implements Observer<TransformChangeEvent>, AutoCloseable {
     private CameraProjector currentProjector;
-    private PMatrix2D matrix;
+    private PMatrix2D projectionMatrix;
 
-    public Camera(Transform transform, CameraProjector initialProjector) {
-        this.transform = transform;
+    public Camera(CameraProjector initialProjector) {
+        super();
         this.transform.addChangeObserver(this);
         this.currentProjector = initialProjector;
+        this.updateMatrix();
     }
 
     private void updateMatrix() {
-        this.matrix = this.currentProjector.getProjectionMatrix(this.transform);
+        this.projectionMatrix = this.currentProjector.getProjectionMatrix(this.transform);
     }
 
-    public PMatrix2D getMatrix() {
-        return this.matrix;
+    public PMatrix2D getProjectionMatrix() {
+        this.updateMatrix();
+        return this.projectionMatrix;
     }
 
     public void switchProjector(CameraProjector newProjector) {

@@ -1,9 +1,14 @@
 package green.liam.base;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GameObject {
+    private static final Map<String, GameObject> taggedObjects = new HashMap<>();
+    private String tag = null;
+
     protected Transform transform;
     protected List<Component> components = new ArrayList<>();
 
@@ -17,6 +22,19 @@ public class GameObject {
 
     public Transform transform() {
         return this.transform;
+    }
+
+    public String getTag() {
+        return this.tag;
+    }
+
+    public void setTag(String tag) {
+        if (tag == null) {
+            taggedObjects.remove(this.getTag());
+        } else {
+            taggedObjects.put(tag, this);
+        }
+        this.tag = tag;
     }
 
     public <T extends Component> T getComponent(Class<T> type) {
@@ -37,6 +55,11 @@ public class GameObject {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public <T extends Component> T addComponent(T component) {
+        this.components.add(component);
+        return component;
     }
 
     public boolean hasComponent(Class<? extends Component> type) {
@@ -65,8 +88,15 @@ public class GameObject {
     }
 
     public void onDestroy() {
+        if (this.tag != null) {
+            taggedObjects.remove(this.tag);
+        }
         for (Component component : this.components) {
             component.onDestroy();
         }
+    }
+
+    public static GameObject findWithTag(String tag) {
+        return taggedObjects.get(tag);
     }
 }

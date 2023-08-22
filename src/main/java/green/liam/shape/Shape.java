@@ -60,6 +60,6 @@ public abstract class Shape extends GameObject implements Renderable {
     @Override
     public float getDepth(Camera camera) {
         PVector pos = this.transform.position();
-        return Transform.inverseTranslateVector(camera, pos).y;
+        return Transform.inverseTranslateVector(pos).y;
     }
 }

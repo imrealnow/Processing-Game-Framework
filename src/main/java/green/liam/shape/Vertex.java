@@ -3,6 +3,7 @@ package green.liam.shape;
 import green.liam.base.Game;
 import green.liam.base.Transform;
 import green.liam.rendering.Camera;
+import processing.core.PMatrix2D;
 import processing.core.PVector;
 
 public class Vertex {
@@ -21,14 +22,33 @@ public class Vertex {
     }
 
     public PVector position() {
-        return this.transform.transformVertex(this.localPosition);
+        return Transform.translateVector(this.localPosition);
     }
 
+
     public PVector translatedPosition() {
-        PVector position = this.position();
         Camera camera = Game.getInstance().getCamera();
-        return Transform.inverseTranslateVector(camera, position).add(0,
-                -(this.height + this.transform.height()) * this.transform.yScale());
+        float cameraRotation = (float) Math.toRadians(camera.transform().rotation());
+        PVector halfScreenDimensions = Game.getInstance().getScreenDimensions().mult(0.5f);
+        PVector position = this.localPosition.copy();
+
+        // Transform by the object's local matrix
+        PMatrix2D localMatrix2d = this.transform.getCombinedMatrix();
+        PVector localTransformedPosition = new PVector();
+        localMatrix2d.mult(position, localTransformedPosition);
+
+        // Apply the camera's projection matrix
+        PMatrix2D cameraProjectionMatrix2d = camera.getProjectionMatrix();
+        PVector projectedPosition = new PVector();
+        cameraProjectionMatrix2d.mult(localTransformedPosition, projectedPosition);
+
+        // Apply the height offset and adjust for screen centering
+        PVector heightOffset = new PVector(0,
+                -(this.height + this.transform.height()) * this.transform.yScale(), 0);
+        projectedPosition.add(heightOffset);
+        projectedPosition.add(halfScreenDimensions);
+
+        return projectedPosition;
     }
 
     public PVector localPosition() {
