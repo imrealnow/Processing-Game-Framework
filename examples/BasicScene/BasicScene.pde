@@ -10,7 +10,10 @@ import processing.core.PVector;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 
-Game game = new Game((PApplet) this, new Isometric3DProjector());
+CameraProjector isometric = new Isometric3DProjector();
+CameraProjector regular2D = new Regular2DProjector();
+boolean is3d = true;
+Game game = new Game((PApplet) this, is3d ? isometric : regular2D);
 InfiniteGround ground;
 Player playerBox;
 
@@ -58,6 +61,11 @@ void createMoveInputBinding() {
         this.playerBox.jump();
     });
     InputManager.INSTANCE.addInputBinding("jump", jumpBinding);
+    DiscreteKeyBinding toggle3dBinding = new DiscreteKeyBinding('r');
+    toggle3dBinding.addCallback(() -> {
+        this.is3d = !this.is3d;
+        this.game.getCamera().switchProjector(this.is3d ? isometric : regular2D);
+    });
 }
 
 @Override
