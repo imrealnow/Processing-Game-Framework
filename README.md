@@ -44,7 +44,6 @@ This library offers a collection of tools and classes designed to simplify game 
    - **Helper**: Contains a collection of utility functions to assist with various tasks:
      - `safeDivide`: Safely divides numbers, handling potential divide-by-zero scenarios.
      - `getPrimitiveClass`: Returns the primitive class from their respective wrapper classes.
-     - `loadImageFromResource`: Loads an image from a specified resource path.
      - `smoothMoveTowards`: Smoothly moves a value towards a target using a sigmoid function.
      - `smoothMoveTowardsAngle`: Smoothly moves an angle towards a target angle, considering the shortest path in degrees.
 
