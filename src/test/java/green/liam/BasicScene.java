@@ -7,6 +7,7 @@ import green.liam.base.GameObject;
 import green.liam.base.Time;
 import green.liam.base.Transform;
 import green.liam.input.Directional2DBinding;
+import green.liam.input.DiscreteKeyBinding;
 import green.liam.input.InputBinding;
 import green.liam.input.InputManager;
 import green.liam.rendering.Camera;
@@ -32,7 +33,6 @@ public class BasicScene extends PApplet {
     @Override
     public void settings() {
         this.size(800, 800, P2D);
-        this.noSmooth();
     }
 
     @Override
@@ -42,13 +42,14 @@ public class BasicScene extends PApplet {
         // setup game
         this.game.initialise();
         this.createMoveInputBinding();
-        // create ground
-        this.ground = new InfiniteGround(null, this.loadImage("grass.png"), 50f);
-        this.game.addGameObject(this.ground);
         // create player
         this.playerBox = new Player(0, 0, 10f, 10f, 60f);
         this.game.addGameObject(this.playerBox);
         this.playerBox.setTag("player");
+        // create ground
+        this.ground = new InfiniteGround(null, this.loadImage("grass.png"), 32f);
+        this.ground.setFollowTarget(this.playerBox.transform());
+        this.game.addGameObject(this.ground);
         // create boxes
         for (int i = 0; i < 20; i++) {
             PVector position = new PVector(this.random(-500, 500), this.random(-500, 500));
@@ -63,6 +64,11 @@ public class BasicScene extends PApplet {
 
     void createMoveInputBinding() {
         Directional2DBinding moveBinding = new Directional2DBinding('w', 's', 'a', 'd');
+        DiscreteKeyBinding jumpBinding = new DiscreteKeyBinding(' ');
+        jumpBinding.addCallback(() -> {
+            this.playerBox.jump();
+        });
+        InputManager.INSTANCE.addInputBinding("jump", jumpBinding);
         InputManager.INSTANCE.addInputBinding("move", moveBinding);
     }
 
@@ -78,8 +84,6 @@ public class BasicScene extends PApplet {
 
     @Override
     public void draw() {
-        this.fill(120);
-        this.stroke(200);
         this.game.draw();
     }
 
@@ -87,7 +91,8 @@ public class BasicScene extends PApplet {
 
 
 class Player extends Box {
-    float speed = 10f;
+    float speed = 5f;
+    float yVelocity = 0f;
     Directional2DBinding moveBinding;
 
     Player(int x, int y, float width, float length, float height) {
@@ -114,12 +119,30 @@ class Player extends Box {
     public void update() {
         if (this.moveBinding != null) {
             Camera camera = Game.getInstance().getCamera();
-            float cameraRotation = (float) Math.toRadians(camera.transform().rotation());
+            float cameraRotation = camera.transform().rotationInRadians();
             PVector direction = this.moveBinding.getValue().rotate(-cameraRotation);
+            this.transform.setRotation(-camera.transform().rotation());
+            // apply y velocity
+            float height = this.transform.height();
+            float newHeight = PApplet.max(height + this.yVelocity * Time.INSTANCE.deltaTime(), 0);
+            if (newHeight <= 0) {
+                this.yVelocity = 0;
+            }
+            this.transform.setHeight(newHeight);
+            // apply gravity if not on the ground
+            if (height != 0)
+                this.yVelocity -= 30f;
+            // move if there is movement input
             if (direction.mag() > 0) {
                 this.move(direction);
             }
         }
+    }
+
+    public void jump() {
+        if (this.transform.height() == 0)
+            this.yVelocity = 500f;
+        System.out.println("Jump!");
     }
 }
 
@@ -147,9 +170,7 @@ class CameraController extends Component {
         PVector targetDirection =
                 PVector.sub(targetPosition, cameraPosition).mult(Time.INSTANCE.deltaTime() * 4f);
         PVector newPosition = PVector.add(cameraPosition, targetDirection);
-        if (targetDirection.mag() > 0.05f) {
-            this.camera.transform().setPosition(newPosition);
-        }
+        this.camera.transform().setPosition(newPosition);
         this.camera.transform().setRotation(this.angle);
     }
 }

@@ -28,10 +28,9 @@ public class Vertex {
 
     public PVector translatedPosition() {
         Camera camera = Game.getInstance().getCamera();
-        float cameraRotation = (float) Math.toRadians(camera.transform().rotation());
         PVector halfScreenDimensions = Game.getInstance().getScreenDimensions().mult(0.5f);
         PVector position = this.localPosition.copy();
-
+        position.rotate(this.transform.rotationInRadians());
         // Transform by the object's local matrix
         PMatrix2D localMatrix2d = this.transform.getCombinedMatrix();
         PVector localTransformedPosition = new PVector();
@@ -43,8 +42,7 @@ public class Vertex {
         cameraProjectionMatrix2d.mult(localTransformedPosition, projectedPosition);
 
         // Apply the height offset and adjust for screen centering
-        PVector heightOffset = new PVector(0,
-                -(this.height + this.transform.height()) * this.transform.yScale(), 0);
+        PVector heightOffset = new PVector(0, this.height(), 0);
         projectedPosition.add(heightOffset);
         projectedPosition.add(halfScreenDimensions);
 
@@ -61,7 +59,9 @@ public class Vertex {
     }
 
     public float height() {
-        return this.height;
+        Camera camera = Game.getInstance().getCamera();
+        return -(this.height + this.transform.height()) * this.transform.yScale()
+                * camera.getYScale();
     }
 
     public Vertex setHeight(float height) {

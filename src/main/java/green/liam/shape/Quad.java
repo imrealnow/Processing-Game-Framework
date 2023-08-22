@@ -3,6 +3,7 @@ package green.liam.shape;
 import green.liam.base.Game;
 import green.liam.rendering.Camera;
 import green.liam.rendering.Renderable;
+import green.liam.util.Helper;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
@@ -14,7 +15,7 @@ public class Quad implements Renderable {
     Edge leadingEdge;
     PVector normal = new PVector(0, -1, 0); // default normal is up
     protected PVector uvOffset = new PVector(0, 0);
-    protected PVector uvScale = new PVector(16, 16);
+    protected PVector uvScale = new PVector(32, 32);
     Vertex min;
     Vertex max;
     PVector dimensions;
@@ -84,6 +85,11 @@ public class Quad implements Renderable {
         return this;
     }
 
+    public Quad setUVScale(PVector uvScale) {
+        this.uvScale = uvScale;
+        return this;
+    }
+
     public Quad setUVOffset(PVector uvOffset) {
         this.uvOffset = uvOffset;
         return this;
@@ -99,11 +105,12 @@ public class Quad implements Renderable {
         for (int i = 0; i < quadVertices.length; i++) {
             PVector pos = quadVertices[i].translatedPosition();
             // Calculate UVs based on position of vertex relative to quad's dimensions
+            pos = Helper.roundPVector(pos, 2);
             if (this.texture != null) {
                 PVector uv = this.vertexUVs[i].copy();
                 uv.x *= this.uvScale.x;
                 uv.y *= this.uvScale.y;
-                uv.add(this.uvOffset);
+                uv.sub(this.uvOffset);
                 game.vertex(pos.x, pos.y, uv.x, uv.y);
             } else
                 game.vertex(pos.x, pos.y);
@@ -115,22 +122,20 @@ public class Quad implements Renderable {
 
     @Override
     public float getDepth(Camera camera) {
-        if (this.isVertical) {
-            PVector start, end;
-            start = this.leadingEdge.start().translatedPosition();
-            end = this.leadingEdge.end().translatedPosition();
-            return PVector.add(start, end).mult(0.5f).y;
-        } else {
-            float highest = Float.MIN_VALUE;
-            float heightSum = 0;
-            for (Vertex v : this.vertices()) {
-                float y = v.translatedPosition().y;
-                heightSum += v.height();
-                if (y > highest)
-                    highest = y;
-            }
-            return highest + (heightSum / 4f) * 10f;
+        float averageHeight = 0;
+        float averagePosition = 0;
+
+        for (Vertex v : this.vertices()) {
+            averageHeight -= v.height();
+            averagePosition += v.translatedPosition().sub(new PVector(0, v.height())).y;
         }
+        averageHeight /= this.vertices().length;
+        averagePosition /= this.vertices().length;
+
+        float alpha = 0.5f; // adjust this value as per your requirements
+        float depth = alpha * averageHeight + (1 - alpha) * averagePosition;
+
+        return depth;
     }
 
 

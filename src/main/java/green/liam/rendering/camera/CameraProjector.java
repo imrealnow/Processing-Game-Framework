@@ -5,4 +5,6 @@ import processing.core.PMatrix2D;
 
 public interface CameraProjector {
     PMatrix2D getProjectionMatrix(Transform transform);
+
+    float getYScale();
 }

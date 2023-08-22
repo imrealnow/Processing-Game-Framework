@@ -9,6 +9,7 @@ import green.liam.events.Observer;
 import green.liam.events.TransformChangeEvent;
 import green.liam.events.TransformChangeEvent.ChangeType;
 import green.liam.util.Helper;
+import processing.core.PApplet;
 import processing.core.PMatrix2D;
 import processing.core.PVector;
 
@@ -102,6 +103,10 @@ public class Transform extends Component {
         return this.parent.rotation() + this.rotation;
     }
 
+    public float rotationInRadians() {
+        return PApplet.radians(this.rotation()) + Float.MIN_VALUE;
+    }
+
     public PVector scale() {
         if (this.parent == null)
             return this.scale;
@@ -186,7 +191,6 @@ public class Transform extends Component {
 
         this.combinedMatrix = new PMatrix2D();
         this.combinedMatrix.apply(this.scaleMatrix);
-        this.combinedMatrix.apply(this.rotationMatrix);
         this.combinedMatrix.apply(this.translationMatrix);
 
         if (this.parent != null) {
@@ -203,18 +207,15 @@ public class Transform extends Component {
     public PMatrix2D getInverseMatrix() {
         PMatrix2D inverseTranslationMatrix = new PMatrix2D();
         PMatrix2D inverseScaleMatrix = new PMatrix2D();
-        PMatrix2D inverseRotationMatrix = new PMatrix2D();
 
         // Invert each transformation
         inverseScaleMatrix.scale(1 / this.scale.x, 1 / this.scale.z);
         inverseTranslationMatrix.translate(-this.position.x, -this.position.y);
-        inverseRotationMatrix.rotate(-this.rotation);
 
         PMatrix2D inverseCombinedMatrix = new PMatrix2D();
 
         // Apply the inverted transformations in reverse order
         inverseCombinedMatrix.apply(inverseTranslationMatrix);
-        inverseCombinedMatrix.apply(inverseRotationMatrix);
         inverseCombinedMatrix.apply(inverseScaleMatrix);
 
         if (this.parent != null) {

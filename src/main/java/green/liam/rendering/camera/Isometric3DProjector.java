@@ -1,6 +1,7 @@
 package green.liam.rendering.camera;
 
 import green.liam.base.Transform;
+import processing.core.PApplet;
 import processing.core.PMatrix2D;
 import processing.core.PVector;
 
@@ -11,18 +12,18 @@ public class Isometric3DProjector implements CameraProjector {
     public PMatrix2D getProjectionMatrix(Transform transform) {
         PMatrix2D updatedCameraMatrix = new PMatrix2D();
         PVector cameraPosition = transform.position();
-        float rotation = (float) Math.toRadians(transform.rotation()) * -1f;
-        // cameraPosition.rotate(rotation); // Rotate camera's position
+        float rotation = transform.rotationInRadians();
 
         updatedCameraMatrix.scale(1, Y_SCALE); // Scale
-        updatedCameraMatrix.rotate(-rotation); // Rotate
-        updatedCameraMatrix.translate(-cameraPosition.x, -cameraPosition.y); // Translate to
-        // camera's
-        // position
-        // updatedCameraMatrix.translate(-cameraPosition.x, -cameraPosition.y); // Translate back to
-        // origin
+        updatedCameraMatrix.rotate(PApplet.round(rotation * 1000f) / 1000f); // Rotate
+        updatedCameraMatrix.translate(-cameraPosition.x, -cameraPosition.y); // translate
 
         return updatedCameraMatrix;
     }
 
+
+    @Override
+    public float getYScale() {
+        return 1;
+    }
 }

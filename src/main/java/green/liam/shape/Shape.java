@@ -5,6 +5,7 @@ import green.liam.base.GameObject;
 import green.liam.base.Transform;
 import green.liam.rendering.Camera;
 import green.liam.rendering.Renderable;
+import green.liam.util.Helper;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -52,6 +53,7 @@ public abstract class Shape extends GameObject implements Renderable {
         Vertex[] quadVertices = this.vertices();
         for (int i = 0; i < quadVertices.length; i++) {
             PVector pos = quadVertices[i].translatedPosition();
+            pos = Helper.roundPVector(pos, 2);
             game.vertex(pos.x, pos.y);
         }
         game.endShape(Game.CLOSE);

@@ -122,6 +122,8 @@ public class Game extends PApplet {
     @Override
     public void draw() {
         this.parent.background(0);
+        this.parent.fill(120);
+        this.parent.stroke(200);
         PriorityQueue<Renderable> renderQueue = this.createRenderQueue();
         while (!renderQueue.isEmpty()) {
             Renderable renderable = renderQueue.poll();

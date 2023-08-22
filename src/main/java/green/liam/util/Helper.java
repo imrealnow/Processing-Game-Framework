@@ -1,5 +1,7 @@
 package green.liam.util;
 
+import processing.core.PVector;
+
 public class Helper {
     public static float safeDivide(float a, float b) {
         if (b == 0)
@@ -75,4 +77,13 @@ public class Helper {
         return currentAngle + change;
     }
 
+    public static PVector roundPVector(PVector vector, int decimalPlaces) {
+        float multiplier = 10f;
+        for (int i = 1; i < decimalPlaces; i++) {
+            multiplier *= 10f;
+        }
+        return new PVector(Math.round(vector.x * multiplier) / multiplier,
+                Math.round(vector.y * multiplier) / multiplier,
+                Math.round(vector.z * multiplier) / multiplier);
+    }
 }

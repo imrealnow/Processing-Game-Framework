@@ -30,7 +30,6 @@ public enum InputManager {
         this.mouseEventManager = EventManagerFactory.getEventManager(MouseEvent.class);
     }
 
-
     public void addInputBinding(String name, InputBinding<?> binding) {
         this.inputBindings.put(name, binding);
         // If a future is waiting for this binding, complete it.
