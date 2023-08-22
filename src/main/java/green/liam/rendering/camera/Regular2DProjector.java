@@ -6,23 +6,23 @@ import processing.core.PMatrix2D;
 
 public class Regular2DProjector implements CameraProjector {
 
-    @Override
-    public PMatrix2D getProjectionMatrix(Transform transform) {
-        PMatrix2D matrix = new PMatrix2D();
-        matrix.scale(1, 1);
-        matrix.rotate(PApplet.round(transform.rotationInRadians() * 1000) / 1000f);
-        matrix.translate(-transform.position().x, -transform.position().y);
-        return matrix;
-    }
+  @Override
+  public PMatrix2D getProjectionMatrix(Transform transform) {
+    PMatrix2D matrix = new PMatrix2D();
+    matrix.scale(1, 1);
+    matrix.rotate(PApplet.round(transform.rotationInRadians() * 1000) / 1000f);
+    matrix.translate(-transform.position().x, -transform.position().y);
+    return matrix;
+  }
 
-    @Override
-    public float getYScale() {
-        return 0f;
-    }
+  @Override
+  public float getYScale() {
+    return 0f;
+  }
 
-    @Override
-    public float depthAlpha() {
-        // only consider transform height to calculate depth
-        return 1f;
-    }
+  @Override
+  public float depthAlpha() {
+    // only consider transform height to calculate depth
+    return 1f;
+  }
 }

@@ -1,21 +1,22 @@
 package green.liam.base;
 
 public abstract class Component {
-    protected GameObject gameObject;
 
-    public Component(GameObject gameObject) {
-        this.gameObject = gameObject;
-    }
+  protected GameObject gameObject;
 
-    public GameObject gameObject() {
-        return this.gameObject;
-    }
+  public Component(GameObject gameObject) {
+    this.gameObject = gameObject;
+  }
 
-    public void update() {}
+  public GameObject gameObject() {
+    return this.gameObject;
+  }
 
-    public void start() {}
+  public void update() {}
 
-    public void onDestroy() {
-        this.gameObject = null;
-    }
+  public void start() {}
+
+  public void onDestroy() {
+    this.gameObject = null;
+  }
 }
