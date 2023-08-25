@@ -22,6 +22,7 @@ public class InfiniteGround extends Shape {
     this.createQuad();
     this.quad.setTexture(this.texture);
     this.quad.setUVScale(new PVector(this.scale, this.scale));
+    this.quad.castShadow = false;
   }
 
   public InfiniteGround(Transform parent, PImage texture, float scale) {
@@ -44,13 +45,14 @@ public class InfiniteGround extends Shape {
     this.edges[1] = new Edge(this.vertices[1], this.vertices[2]);
     this.edges[2] = new Edge(this.vertices[2], this.vertices[3]);
     this.edges[3] = new Edge(this.vertices[3], this.vertices[0]);
-    this.quad =
-      new Quad(
-        this.vertices[0],
-        this.vertices[1],
-        this.vertices[2],
-        this.vertices[3]
-      );
+    Quad quad = new Quad(
+      this.vertices[0],
+      this.vertices[1],
+      this.vertices[2],
+      this.vertices[3]
+    );
+    quad.setIsLit(false);
+    this.quad = quad;
   }
 
   public void setFollowTarget(Transform followTarget) {
@@ -76,5 +78,10 @@ public class InfiniteGround extends Shape {
   @Override
   public float getDepth(Camera camera) {
     return Float.NEGATIVE_INFINITY;
+  }
+
+  @Override
+  public int getRenderLayer() {
+    return -2;
   }
 }

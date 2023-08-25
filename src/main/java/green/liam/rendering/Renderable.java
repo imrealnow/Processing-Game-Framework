@@ -13,8 +13,15 @@ public interface Renderable extends Comparable<Renderable> {
    */
   float getDepth(Camera camera);
 
+  default int getRenderLayer() {
+    return 0;
+  }
+
   @Override
   default int compareTo(Renderable other) {
+    if (this.getRenderLayer() != other.getRenderLayer()) {
+      return Integer.compare(this.getRenderLayer(), other.getRenderLayer());
+    }
     Camera camera = Game.getInstance().getCamera();
     return Float.compare(this.getDepth(camera), other.getDepth(camera));
   }

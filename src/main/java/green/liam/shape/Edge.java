@@ -20,6 +20,12 @@ public class Edge {
     return this.end;
   }
 
+  public PVector toVector() {
+    return this.end.pseudo3DPosition()
+      .copy()
+      .sub(this.start.pseudo3DPosition());
+  }
+
   public PVector normal() {
     PVector start = this.start.translatedPosition();
     PVector end = this.end.translatedPosition();

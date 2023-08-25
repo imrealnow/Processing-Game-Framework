@@ -7,8 +7,10 @@ import green.liam.rendering.Renderable;
 import green.liam.rendering.camera.CameraProjector;
 import green.liam.rendering.camera.Isometric3DProjector;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.event.KeyEvent;
@@ -21,10 +23,12 @@ public class Game extends PApplet {
   private final Camera camera;
   private List<GameObject> gameObjects = new ArrayList<>();
 
-  private static final int frameRate = 60;
-  private static final int updateRate = 60;
+  private static final int frameRate = 120;
+  private static final int updateRate = 120;
 
   private PApplet parent;
+
+  private Set<Renderable> renderQueueBuffer = new HashSet<>();
 
   /**
    * Creates a Game object with a parent PApplet.
@@ -107,16 +111,44 @@ public class Game extends PApplet {
     Time.INSTANCE.update();
   }
 
+  public void addToRenderQueue(Renderable renderable) {
+    this.renderQueueBuffer.add(renderable);
+  }
+
+  private void unpackRenderables(
+    Renderable renderable,
+    PriorityQueue<Renderable> queue,
+    Set<Renderable> visited
+  ) {
+    if (visited.contains(renderable)) {
+      queue.add(renderable);
+      return; // If we've already visited this renderable, skip it
+    }
+
+    visited.add(renderable); // Mark this renderable as visited
+
+    // If the renderable is a composite, unpack its renderables
+    if (renderable instanceof CompositeRenderable) {
+      CompositeRenderable composite = (CompositeRenderable) renderable;
+      for (Renderable r : composite.getRenderables()) {
+        this.unpackRenderables(r, queue, visited);
+      }
+    } else {
+      // Otherwise, add the renderable to the queue
+      queue.add(renderable);
+    }
+  }
+
   private PriorityQueue<Renderable> createRenderQueue() {
     PriorityQueue<Renderable> renderQueue = new PriorityQueue<Renderable>();
-    this.gameObjects.forEach(gameObject -> {
-        if (gameObject instanceof CompositeRenderable) {
-          CompositeRenderable composite = (CompositeRenderable) gameObject;
-          renderQueue.addAll(composite.getRenderables());
-        } else if (gameObject instanceof Renderable) {
-          renderQueue.add((Renderable) gameObject);
-        }
-      });
+    Set<Renderable> visited = new HashSet<Renderable>();
+    renderQueue.addAll(this.renderQueueBuffer);
+    this.renderQueueBuffer.clear();
+    for (GameObject gameObject : this.gameObjects) {
+      if (gameObject instanceof Renderable) {
+        this.unpackRenderables((Renderable) gameObject, renderQueue, visited);
+      }
+    }
     return renderQueue;
   }
 
