@@ -30,8 +30,7 @@ class Player extends Box {
         if (this.moveBinding != null) {
             Camera camera = Game.getInstance().getCamera();
             float cameraRotation = camera.transform().rotationInRadians();
-            PVector direction = this.moveBinding.getValue().rotate( - cameraRotation);
-            this.transform.setRotation( - camera.transform().rotation());
+            PVector direction = this.moveBinding.getValue().rotate( -cameraRotation);
             // apply y velocity
             float height = this.transform.height();
             float newHeight = PApplet.max(height + this.yVelocity * Time.INSTANCE.deltaTime(), 0);

@@ -116,6 +116,10 @@ public class Transform extends Component {
     );
   }
 
+  public static Transform identity() {
+    return IDENTITY;
+  }
+
   public float yScale() {
     if (this.parent != null) return this.parent.yScale() * this.scale.y;
     return this.scale.y;

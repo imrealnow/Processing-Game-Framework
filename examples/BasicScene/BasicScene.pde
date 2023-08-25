@@ -17,7 +17,6 @@ Game game = new Game((PApplet) this, is3d ? isometric : regular2D);
 InfiniteGround ground;
 Player playerBox;
 
-
 @Override
 public void settings() {
     // set window size, and use OpenGL 2D renderer
