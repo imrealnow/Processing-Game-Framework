@@ -10,12 +10,16 @@ import green.liam.input.DiscreteKeyBinding;
 import green.liam.input.InputBinding;
 import green.liam.input.InputManager;
 import green.liam.rendering.Camera;
+import green.liam.rendering.camera.CameraProjector;
 import green.liam.rendering.camera.Isometric3DProjector;
+import green.liam.rendering.camera.Regular2DProjector;
 import green.liam.shape.Box;
 import green.liam.shape.InfiniteGround;
 import green.liam.shape.ShapeFactory;
+import green.liam.shape.Sprite;
 import java.util.concurrent.CompletableFuture;
 import processing.core.PApplet;
+import processing.core.PImage;
 import processing.core.PVector;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
@@ -23,7 +27,13 @@ import processing.opengl.PShader;
 
 public class BasicScene extends PApplet {
 
-  Game game = new Game((PApplet) this, new Isometric3DProjector());
+  CameraProjector isometric = new Isometric3DProjector();
+  CameraProjector regular2D = new Regular2DProjector();
+  boolean is3d = true;
+  Game game = new Game(
+    (PApplet) this,
+    this.is3d ? this.isometric : this.regular2D
+  );
   InfiniteGround ground;
   Player playerBox;
   PShader shader;
@@ -58,6 +68,10 @@ public class BasicScene extends PApplet {
     this.ground = new InfiniteGround(null, this.loadImage("grass.png"), 32f);
     this.ground.setFollowTarget(this.playerBox.transform());
     this.game.addGameObject(this.ground);
+    // create sprite
+    PImage spriteImage = this.loadImage("Checker.png");
+    Sprite sprite = new Sprite(spriteImage, 100f, 100f);
+    this.game.addGameObject(sprite);
     // create boxes
     for (int i = 0; i < 20; i++) {
       PVector position = new PVector(
@@ -86,8 +100,15 @@ public class BasicScene extends PApplet {
     jumpBinding.addCallback(() -> {
       this.playerBox.jump();
     });
+    DiscreteKeyBinding toggle3dBinding = new DiscreteKeyBinding('r');
+    toggle3dBinding.addCallback(() -> {
+      this.is3d = !this.is3d;
+      this.game.getCamera()
+        .switchProjector(this.is3d ? this.isometric : this.regular2D);
+    });
     InputManager.INSTANCE.addInputBinding("jump", jumpBinding);
     InputManager.INSTANCE.addInputBinding("move", moveBinding);
+    InputManager.INSTANCE.addInputBinding("toggle3d", toggle3dBinding);
   }
 
   @Override
@@ -103,7 +124,7 @@ public class BasicScene extends PApplet {
   @Override
   public void draw() {
     this.game.draw();
-    this.filter(this.shader);
+    //this.filter(this.shader);
   }
 }
 

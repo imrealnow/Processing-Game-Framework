@@ -23,7 +23,6 @@ public class RenderingManager {
     this.initialiseDefaultMaterials();
   }
 
-  // Singleton method to get instance
   public static RenderingManager getInstance(PApplet p) {
     if (instance == null) {
       instance = new RenderingManager(p);
@@ -32,16 +31,12 @@ public class RenderingManager {
   }
 
   private void initialiseDefaultMaterials() {
-    // Initialize defaultShader
-    // Example:
     this.defaultShader =
-      this.parent.loadShader("pathToVertShader.vert", "pathToFragShader.frag");
+    this.parent.loadShader("pathToFragShader.frag", "pathToVertShader.vert");
 
-    // Initialize defaultTexture
-    // Example:
-    this.defaultTexture = this.parent.loadImage("pathToDefaultTexture.png");
+    this.defaultTexture = this.parent.createImage(1, 1, PApplet.RGB);
+    this.defaultTexture.pixels[0] = this.parent.color(255, 255, 255);
 
-    // Create and set defaultMaterial using the default shader and texture
     defaultMaterial = new Material(this.defaultShader, this.defaultTexture);
     instancedMaterials.put("default", defaultMaterial);
   }

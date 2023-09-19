@@ -24,7 +24,7 @@ public class Game extends PApplet {
   private List<GameObject> gameObjects = new ArrayList<>();
 
   private static final int frameRate = 120;
-  private static final int updateRate = 120;
+  private static final int updateRate = 60;
 
   private PApplet parent;
 
@@ -107,7 +107,7 @@ public class Game extends PApplet {
 
   protected void update() {
     List<GameObject> listCopy = new ArrayList<>(this.gameObjects);
-    listCopy.forEach(gameObject -> gameObject.update());
+    listCopy.forEach(GameObject::update);
     Time.INSTANCE.update();
   }
 
@@ -116,10 +116,9 @@ public class Game extends PApplet {
   }
 
   private void unpackRenderables(
-    Renderable renderable,
-    PriorityQueue<Renderable> queue,
-    Set<Renderable> visited
-  ) {
+      Renderable renderable,
+      PriorityQueue<Renderable> queue,
+      Set<Renderable> visited) {
     if (visited.contains(renderable)) {
       queue.add(renderable);
       return; // If we've already visited this renderable, skip it

@@ -10,19 +10,17 @@ public enum Time {
   INSTANCE;
 
   final Map<String, LoopRecord> loops = Collections.synchronizedMap(
-    new HashMap<>()
-  );
+      new HashMap<>());
   final long startTime = System.currentTimeMillis();
 
   long lastTime = System.currentTimeMillis();
   float timeScale = 1f;
 
-  private Time() {}
+  private Time() {
+  }
 
   public float deltaTime() {
-    return (
-      (System.currentTimeMillis() - this.lastTime) / 1000f * this.timeScale
-    );
+    return ((System.currentTimeMillis() - this.lastTime) / 1000f * this.timeScale);
   }
 
   public float time() {
@@ -37,12 +35,20 @@ public enum Time {
     this.timeScale = timeScale;
   }
 
+  public float getTimeScale() {
+    return this.timeScale;
+  }
+
   /**
-   * Starts a loop that calls the given function a specified amount of times per second.
+   * Starts a loop that calls the given function a specified amount of times per
+   * second.
    *
-   * @param name The name of the loop to be used as a key.
-   * @param timesPerSecond how many times per second to call the function.
-   * @param callback The function to call.
+   * @param name
+   *          The name of the loop to be used as a key.
+   * @param timesPerSecond
+   *          how many times per second to call the function.
+   * @param callback
+   *          The function to call.
    * @return The timer object that is running the loop.
    */
   public Timer loop(String name, int timesPerSecond, Runnable callback) {
@@ -64,7 +70,8 @@ public enum Time {
   /**
    * Cancels a loop with the given name.
    *
-   * @param name The name of the loop to cancel.
+   * @param name
+   *          The name of the loop to cancel.
    */
   public void cancelLoop(String name) {
     if (this.loops.containsKey(name)) {
@@ -76,8 +83,10 @@ public enum Time {
   /**
    * Runs the callback after the specified number of milliseconds.
    *
-   * @param milliseconds the delay in milliseconds
-   * @param callback the callback to run
+   * @param milliseconds
+   *          the delay in milliseconds
+   * @param callback
+   *          the callback to run
    */
   public void delayedInvoke(int milliseconds, Runnable callback) {
     Timer timer = new Timer();
@@ -94,11 +103,10 @@ public enum Time {
    * Record for saving info about a loop
    */
   record LoopRecord(
-    String key,
-    Timer timer,
-    TimerTask task,
-    int timesPerSecond
-  ) {
+      String key,
+      Timer timer,
+      TimerTask task,
+      int timesPerSecond) {
     /**
      * Gets the amount of times per second the loop is running.
      *

@@ -66,26 +66,6 @@ public class Vertex {
     return projectedPosition;
   }
 
-  public PVector inverseTranslatedPosition(PVector translatedPosition) {
-    Camera camera = Game.getInstance().getCamera();
-    PVector halfScreenDimensions = Game
-      .getInstance()
-      .getScreenDimensions()
-      .mult(0.5f);
-    PVector heightOffset = new PVector(0, this.height(), 0);
-    translatedPosition.sub(halfScreenDimensions);
-    translatedPosition.sub(heightOffset);
-    PMatrix2D cameraProjectionMatrix2d = camera.getProjectionMatrix();
-    PVector localTransformedPosition = new PVector();
-    cameraProjectionMatrix2d.mult(translatedPosition, localTransformedPosition);
-    PMatrix2D localMatrix2d = this.transform.getCombinedMatrix();
-    PVector position = new PVector();
-    localMatrix2d.invert();
-    localMatrix2d.mult(localTransformedPosition, position);
-    position.rotate(-this.transform.rotationInRadians());
-    return position;
-  }
-
   public PVector localPosition() {
     return this.localPosition;
   }

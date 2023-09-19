@@ -12,8 +12,7 @@
 
   <properties>
     <encoding>UTF-8</encoding>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.release>17</maven.compiler.release>
     <sketchbook.location>${user.home}/Documents/Processing</sketchbook.location>
     <processing.core.jar.location>${project.basedir}/lib/core.jar</processing.core.jar.location>
     <library.target.dir>${sketchbook.location}/libraries/${project.name}</library.target.dir>
@@ -64,6 +63,13 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- maven-compiler-plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
       </plugin>
 
       <!-- maven-resources-plugin -->

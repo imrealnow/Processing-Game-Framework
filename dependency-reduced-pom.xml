@@ -23,6 +23,10 @@
         </executions>
       </plugin>
       <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+      </plugin>
+      <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.6</version>
         <executions>
@@ -124,10 +128,9 @@
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.release>17</maven.compiler.release>
     <processing.core.jar.location>${project.basedir}/lib/core.jar</processing.core.jar.location>
     <sketchbook.location>${user.home}/Documents/Processing</sketchbook.location>
-    <maven.compiler.source>17</maven.compiler.source>
     <library.target.dir>${sketchbook.location}/libraries/${project.name}</library.target.dir>
     <encoding>UTF-8</encoding>
   </properties>
