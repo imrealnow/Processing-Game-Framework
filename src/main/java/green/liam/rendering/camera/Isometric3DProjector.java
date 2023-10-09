@@ -1,6 +1,7 @@
 package green.liam.rendering.camera;
 
 import green.liam.base.Transform;
+import green.liam.util.Pair;
 import processing.core.PApplet;
 import processing.core.PMatrix2D;
 import processing.core.PVector;
@@ -32,4 +33,5 @@ public class Isometric3DProjector implements CameraProjector {
     // consider both transform height and y position to calculate depth
     return 0.5f;
   }
+
 }

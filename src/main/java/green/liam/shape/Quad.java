@@ -1,33 +1,35 @@
 package green.liam.shape;
 
+import java.util.Set;
+
 import green.liam.base.Game;
 import green.liam.base.Transform;
 import green.liam.rendering.Camera;
-import green.liam.rendering.CompositeRenderable;
 import green.liam.rendering.Renderable;
 import green.liam.rendering.lighting.GlobalLight;
-import green.liam.rendering.lighting.QuadShadow;
+import green.liam.rendering.lighting.ShadowCaster;
 import green.liam.util.Helper;
-import java.util.Collection;
-import java.util.List;
+import green.liam.util.Pair;
+
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
 
-public class Quad implements CompositeRenderable {
+public class Quad implements Renderable {
 
   final Edge[] edges = new Edge[4];
   protected PVector uvOffset = new PVector(0, 0);
-  protected PVector uvScale = new PVector(32, 32);
-  boolean isLit = true;
+  protected PVector uvScale = new PVector(1, 1);
+  boolean isLit = false;
   boolean isVertical = false;
   boolean castShadow = true;
-  boolean drawStroke = false;
+  boolean drawStroke = true;
   boolean overrideDepth = false;
   float depthOverride;
   Quad shadowQuad;
   float[] fillColour = new float[] { 150, 150, 150, 255 };
-  float[] shadowColour = new float[] { 98, 105, 82, 255 };
+  float[] shadowColour = new float[] { 160, 160, 200, 255 };
+  float[] strokeColour = new float[] { 50, 50, 50, 255 };
   PImage texture;
   Edge leadingEdge;
   PVector normal = new PVector(0, -1, 0); // default normal is up
@@ -35,11 +37,12 @@ public class Quad implements CompositeRenderable {
   Vertex max;
   PVector dimensions;
   PVector[] vertexUVs = new PVector[] {
-    new PVector(0, 0),
-    new PVector(1, 0),
-    new PVector(1, 1),
-    new PVector(0, 1),
+      new PVector(0, 0),
+      new PVector(1, 0),
+      new PVector(1, 1),
+      new PVector(0, 1),
   };
+  boolean textureSet = false;
 
   public Quad(Edge[] edges) {
     this(edges[0], edges[1], edges[2], edges[3]);
@@ -78,6 +81,73 @@ public class Quad implements CompositeRenderable {
 
   public Edge[] edges() {
     return this.edges;
+  }
+
+  public PVector centerPosition() {
+    PVector center = new PVector();
+    for (Vertex v : this.vertices()) {
+      center.add(v.worldPosition());
+    }
+    center.div(this.vertices().length);
+    return center;
+  }
+
+  public PVector translatedCenter() {
+    PVector center = new PVector();
+    for (Vertex v : this.vertices()) {
+      center.add(v.translatedPosition());
+    }
+    center.div(this.vertices().length);
+    return center;
+  }
+
+  /**
+   * Returns true if the given point is inside the quad (using the assumption that
+   * all vertices exist on a plane)
+   * 
+   * @param point
+   * @return
+   */
+  public boolean isPointInside(PVector point) {
+    PVector[] vertices = new PVector[4];
+    for (int i = 0; i < vertices.length; i++) {
+      vertices[i] = this.edges[i].start().worldPosition();
+    }
+    PVector v0 = vertices[3].copy().sub(vertices[0]);
+    PVector v1 = vertices[1].copy().sub(vertices[0]);
+    PVector v2 = point.copy().sub(vertices[0]);
+
+    float dot00 = PVector.dot(v0, v0);
+    float dot01 = PVector.dot(v0, v1);
+    float dot02 = PVector.dot(v0, v2);
+    float dot11 = PVector.dot(v1, v1);
+    float dot12 = PVector.dot(v1, v2);
+
+    float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return (u >= 0) && (v >= 0) && (u + v < 1);
+  }
+
+  /**
+   * Returns the closest point on one of the edges of the quad to the given point
+   * 
+   * @param point
+   * @return
+   */
+  public PVector closestPointTo(PVector point) {
+    PVector closestPoint = null;
+    float closestDistance = Float.MAX_VALUE;
+    for (Edge edge : this.edges) {
+      PVector edgePoint = edge.closestPointTo(point);
+      float distance = edgePoint.dist(point);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestPoint = edgePoint;
+      }
+    }
+    return closestPoint;
   }
 
   public Transform transform() {
@@ -126,6 +196,7 @@ public class Quad implements CompositeRenderable {
 
   public Quad setTexture(PImage texture) {
     this.texture = texture;
+    this.textureSet = true;
     return this;
   }
 
@@ -146,6 +217,14 @@ public class Quad implements CompositeRenderable {
     this.fillColour = fillColour;
   }
 
+  public void setShadowColour(float[] shadowColour) {
+    this.shadowColour = shadowColour;
+  }
+
+  public void setStrokeColour(float[] strokeColour) {
+    this.strokeColour = strokeColour;
+  }
+
   public Quad setUVScale(PVector uvScale) {
     this.uvScale = uvScale;
     return this;
@@ -159,18 +238,20 @@ public class Quad implements CompositeRenderable {
   private float lightLevel(GlobalLight light) {
     PVector lightDirection = light.getDirectionVector(PApplet.radians(15));
     float lightLevel = PApplet.constrain(
-      PVector.dot(this.normal, lightDirection),
-      0f,
-      1
-    );
+        PVector.dot(this.normal, lightDirection),
+        0f,
+        1);
     return lightLevel;
   }
 
   @Override
   public void render(PApplet game) {
-    if (!this.cameraCanSee()) return;
+    if (!this.cameraCanSee())
+      return;
     if (this.drawStroke) {
-      game.stroke(200);
+      game.stroke(this.strokeColour[0], this.strokeColour[1], this.strokeColour[2], this.strokeColour[3]);
+      game.strokeWeight(2);
+      game.strokeCap(PApplet.PROJECT);
     } else {
       game.noStroke();
     }
@@ -178,13 +259,15 @@ public class Quad implements CompositeRenderable {
     float lightLevel = this.lightLevel(GlobalLight.Dawn);
     if (this.isLit) {
       float[] colour = Helper.colourLerp(
-        this.fillColour,
-        this.shadowColour,
-        lightLevel
-      );
+          this.fillColour,
+          this.shadowColour,
+          lightLevel);
       game.tint(colour[0], colour[1], colour[2], colour[3]);
     } else {
-      game.tint(255, 255, 255, 255);
+      if (this.textureSet)
+        game.tint(255, 255, 255, 255);
+      else
+        game.tint(this.fillColour[0], this.fillColour[1], this.fillColour[2], this.fillColour[3]);
     }
     game.beginShape();
     game.texture(this.texture);
@@ -199,7 +282,8 @@ public class Quad implements CompositeRenderable {
         uv.y *= this.uvScale.y;
         uv.sub(this.uvOffset);
         game.vertex(pos.x, pos.y, uv.x, uv.y);
-      } else game.vertex(pos.x, pos.y);
+      } else
+        game.vertex(pos.x, pos.y);
     }
 
     game.endShape(Game.CLOSE);
@@ -207,41 +291,80 @@ public class Quad implements CompositeRenderable {
 
   @Override
   public float getDepth(Camera camera) {
-    if (this.overrideDepth) return this.depthOverride;
-    float averageHeight = 0;
-    float averagePosition = 0;
-
+    if (this.overrideDepth)
+      return this.depthOverride;
+    float minHeight = Float.MAX_VALUE;
+    float maxHeight = Float.MIN_VALUE;
+    float minY = Float.MAX_VALUE;
+    float heightSum = 0;
     for (Vertex v : this.vertices()) {
-      averageHeight -= v.height();
-      averagePosition +=
-        v.translatedPosition().sub(new PVector(0, v.height())).y;
+      float height = v.height();
+      if (height < minHeight)
+        minHeight = height;
+      if (height > maxHeight)
+        maxHeight = height;
+      heightSum += height;
+      float yPos = v.translatedPosition().y - v.height();
+      if (yPos < minY)
+        minY = yPos;
     }
-    averageHeight /= this.vertices().length;
-    averagePosition /= this.vertices().length;
-
+    float averageHeight = heightSum / this.vertices().length;
     float alpha = camera.depthAlpha();
-    float depth = alpha * averageHeight + (1 - alpha) * averagePosition;
-
+    float depth = alpha * -averageHeight + (1 - alpha) * minY;
     return depth;
   }
 
-  private boolean cameraCanSee() {
-    if (!this.isVertical) return true;
+  @Override
+  public Set<Renderable> getChildren() {
+    if (this.castShadow) {
+      this.shadowQuad = ShadowCaster.castQuad(this.vertices(), this.transform(), GlobalLight.Dawn);
+      this.shadowQuad.setFillColour(new float[] { 100, 100, 100, 255 });
+      this.shadowQuad.setIsLit(false);
+      this.shadowQuad.setDrawStroke(false);
+      return Set.of(this.shadowQuad);
+    }
+    return Set.of();
+  }
+
+  public Pair<PVector, PVector> getCenterLine() {
+    float leftLength = this.edges[0].length();
+    float topLength = this.edges[1].length();
+    if (leftLength > topLength) {
+      return new Pair<>(this.edges[1].translatedCenter(), this.edges[3].translatedCenter());
+    } else {
+      return new Pair<>(this.edges[0].translatedCenter(), this.edges[2].translatedCenter());
+    }
+  }
+
+  public void drawCenterLine(PApplet game) {
+    Pair<PVector, PVector> centerLine = this.getCenterLine();
+    game.stroke(255, 0, 0);
+    game.strokeWeight(2);
+    game.line(
+        centerLine.first().x,
+        centerLine.first().y,
+        centerLine.second().x,
+        centerLine.second().y);
+  }
+
+  private boolean isWithinScreenBounds() {
+    PVector screenDimensions = Game.getInstance().getScreenDimensions();
+    Vertex[] vertices = this.vertices();
+    for (Vertex vertex : vertices) {
+      PVector position = vertex.translatedPosition();
+      if (position.x > 0 && position.x < screenDimensions.x && position.y > 0 && position.y < screenDimensions.y) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean cameraCanSee() {
+    if (!this.isVertical)
+      return true;
     PVector cameraDirection = new PVector(0, -1, 0);
     PVector quadDirection = this.leadingEdge.normal();
     float dot = PVector.dot(cameraDirection, quadDirection);
-    return dot < 0;
-  }
-
-  @Override
-  public Collection<Renderable> getRenderables() {
-    if (this.castShadow) {
-      this.shadowQuad =
-        QuadShadow.cast(this.vertices(), this.transform(), GlobalLight.Dawn);
-      this.shadowQuad.setDrawStroke(false);
-      this.shadowQuad.setFillColour(this.shadowColour);
-      return List.of(this, this.shadowQuad);
-    }
-    return List.of(this);
+    return dot < 0 && this.isWithinScreenBounds();
   }
 }

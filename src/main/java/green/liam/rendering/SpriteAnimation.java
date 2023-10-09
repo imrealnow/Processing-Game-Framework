@@ -21,7 +21,7 @@ public class SpriteAnimation {
         STOPPED, PLAYING, LOOPING, PAUSED
     }
 
-    private final JSONObject animationData;
+    private JSONObject animationData;
     private final PImage spriteSheet;
     private final Sprite spriteObject;
 
@@ -56,6 +56,19 @@ public class SpriteAnimation {
         this.initializeFrames(frameArray);
     }
 
+    public SpriteAnimation(String name, PImage spriteSheet, int frameCount, int width, int height, int rows,
+            int columns, int frameDurationMs, Sprite spriteObject) {
+        this.name = name;
+        this.spriteSheet = spriteSheet;
+        this.spriteObject = spriteObject;
+        this.frameCount = frameCount;
+        this.width = width;
+        this.height = height;
+        this.frameDurationMs = frameDurationMs;
+
+        this.initializeFrames(spriteSheet, frameCount, width, height, rows, columns);
+    }
+
     /**
      * Initializes the frames from the sprite sheet based on the provided animation
      * data.
@@ -76,6 +89,15 @@ public class SpriteAnimation {
             this.frames[i] = this.spriteSheet.get(x, y, w, h);
         }
         this.frameDurationMs = (int) Math.round(frameDurationSum / (double) this.frameCount);
+    }
+
+    private void initializeFrames(PImage spriteSheet, int frameCount, int width, int height, int rows, int columns) {
+        this.frames = new PImage[frameCount];
+        for (int i = 0; i < frameCount; i++) {
+            int x = (i % columns) * width;
+            int y = (i / columns) * height;
+            this.frames[i] = spriteSheet.get(x, y, width, height);
+        }
     }
 
     private void setState(AnimationState state) {

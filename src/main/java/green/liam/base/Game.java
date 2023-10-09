@@ -1,6 +1,8 @@
 package green.liam.base;
 
 import green.liam.input.InputManager;
+import green.liam.physics.PhysicsManager;
+import green.liam.physics.Rigidbody;
 import green.liam.rendering.Camera;
 import green.liam.rendering.CompositeRenderable;
 import green.liam.rendering.Renderable;
@@ -24,7 +26,7 @@ public class Game extends PApplet {
   private List<GameObject> gameObjects = new ArrayList<>();
 
   private static final int frameRate = 120;
-  private static final int updateRate = 60;
+  private static final int updateRate = 120;
 
   private PApplet parent;
 
@@ -41,7 +43,7 @@ public class Game extends PApplet {
     instance = this;
     this.parent = parent;
     this.camera = new Camera(cameraProjector);
-    this.addGameObject(this.camera);
+    this.gameObjects.add(this.camera);
   }
 
   /**
@@ -72,11 +74,12 @@ public class Game extends PApplet {
     return new PVector(this.parent.width, this.parent.height);
   }
 
-  public void initialise() {
+  public void initialise(boolean useNearestNeighbour) {
     Time.INSTANCE.loop("update", Game.updateRate, this::update);
     this.parent.frameRate(Game.frameRate);
     this.parent.textureMode(NORMAL);
-    ((PGraphicsOpenGL) this.parent.g).textureSampling(2);
+    if (useNearestNeighbour)
+      ((PGraphicsOpenGL) this.parent.g).textureSampling(2);
   }
 
   public Camera getCamera() {
@@ -85,11 +88,15 @@ public class Game extends PApplet {
 
   public void addGameObject(GameObject gameObject) {
     this.gameObjects.add(gameObject);
+    if (gameObject.hasComponent(Rigidbody.class))
+      PhysicsManager.instance().addRigidbody(gameObject.getComponent(Rigidbody.class));
     gameObject.start();
   }
 
   public void removeGameObject(GameObject gameObject) {
     this.gameObjects.remove(gameObject);
+    if (gameObject.hasComponent(Rigidbody.class))
+      PhysicsManager.instance().removeRigidbody(gameObject.getComponent(Rigidbody.class));
     gameObject.onDestroy();
   }
 
@@ -109,6 +116,7 @@ public class Game extends PApplet {
     List<GameObject> listCopy = new ArrayList<>(this.gameObjects);
     listCopy.forEach(GameObject::update);
     Time.INSTANCE.update();
+    PhysicsManager.instance().update();
   }
 
   public void addToRenderQueue(Renderable renderable) {
@@ -135,6 +143,7 @@ public class Game extends PApplet {
     } else {
       // Otherwise, add the renderable to the queue
       queue.add(renderable);
+      queue.addAll(renderable.getChildren());
     }
   }
 

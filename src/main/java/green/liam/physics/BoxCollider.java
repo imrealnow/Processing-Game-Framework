@@ -1,157 +1,181 @@
 package green.liam.physics;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import green.liam.base.GameObject;
+import green.liam.shape.Edge;
+import green.liam.shape.Quad;
+import green.liam.shape.Vertex;
+import green.liam.util.Pair;
+import processing.core.PApplet;
 import processing.core.PVector;
 
+/**
+ * A class representing a box collider for handling 2D rectangular collisions.
+ */
 public class BoxCollider extends Collider {
 
-  float width;
-  float length;
-  float height;
+  private final Quad box;
 
-  private static final PVector[] AXES = {
-      new PVector(1, 0, 0),
-      new PVector(0, 1, 0),
-      new PVector(0, 0, 1)
-  };
-
-  public BoxCollider(GameObject gameObject) {
+  public BoxCollider(GameObject gameObject, Quad box) {
     super(gameObject);
-    this.width = 1;
-    this.length = 1;
-    this.height = 1;
+    this.box = box;
   }
 
-  public BoxCollider(GameObject gameObject, float width, float length, float height) {
-    super(gameObject);
-    this.width = width;
-    this.length = length;
-    this.height = height;
+  @Override
+  public PVector center() {
+    return this.box.centerPosition();
   }
 
-  public BoxCollider setDimensions(float width, float length, float height) {
-    this.width = width;
-    this.length = length;
-    this.height = height;
-    return this;
+  public void drawNormals(PApplet game) {
+    for (Edge edge : this.box.edges()) {
+      edge.drawNormal(game);
+    }
   }
 
-  public float width() {
-    return this.width;
-  }
-
-  public float length() {
-    return this.length;
-  }
-
-  public float height() {
-    return this.height;
-  }
-
-  public PVector centerPosition() {
-    return this.gameObject().transform().position().copy().add(this.centerOffset);
-  }
-
-  public float minX() {
-    return this.centerPosition().x - this.width / 2;
-  }
-
-  public float maxX() {
-    return this.centerPosition().x + this.width / 2;
-  }
-
-  public float minY() {
-    return this.centerPosition().y - this.length / 2;
-  }
-
-  public float maxY() {
-    return this.centerPosition().y + this.length / 2;
-  }
-
-  public float minZ() {
-    return this.centerPosition().z - this.height / 2;
-  }
-
-  public float maxZ() {
-    return this.centerPosition().z + this.height / 2;
+  public static Pair<Float, Float> projectVertices(List<PVector> vertices, PVector edgeNormal) {
+    float minProjection = Float.MAX_VALUE;
+    float maxProjection = Float.MIN_VALUE;
+    for (PVector vertex : vertices) {
+      float projection = PVector.dot(vertex, edgeNormal);
+      if (projection < minProjection) {
+        minProjection = projection;
+      }
+      if (projection > maxProjection) {
+        maxProjection = projection;
+      }
+    }
+    return new Pair<>(minProjection, maxProjection);
   }
 
   @Override
   public boolean isPointInside(PVector point) {
-    PVector center = this.centerPosition();
-    float halfWidth = this.width / 2;
-    float halfLength = this.length / 2;
-    float halfHeight = this.height / 2;
-    return point.x >= center.x - halfWidth && point.x <= center.x + halfWidth
-        && point.y >= center.y - halfLength && point.y <= center.y + halfLength
-        && point.z >= center.z - halfHeight && point.z <= center.z + halfHeight;
-  }
-
-  @Override
-  public boolean collidesWith(Collider other) {
-    if (other instanceof BoxCollider) {
-      BoxCollider otherBox = (BoxCollider) other;
-      return this.isBoxColliding(otherBox);
-    } else {
-      return other.collidesWith(this);
-    }
+    return this.box.isPointInside(point);
   }
 
   @Override
   public PVector closestPointTo(PVector point) {
-    float closestX = Math.min(Math.max(point.x, this.minX()), this.maxX());
-    float closestY = Math.min(Math.max(point.y, this.minY()), this.maxY());
-    float closestZ = Math.min(Math.max(point.z, this.minZ()), this.maxZ());
-    return new PVector(closestX, closestY, closestZ);
+    return this.box.closestPointTo(point);
   }
 
-  private boolean isBoxColliding(BoxCollider other) {
-    PVector[] axes = this.getAxes();
-    PVector[] otherAxes = other.getAxes();
-    float[] thisProjection;
-    float[] otherProjection;
+  @Override
+  public CollisionData collidesWith(Collider other) {
+    if (other instanceof BoxCollider box) {
+      return this.collidesWithBox(box);
+    } else if (other instanceof SphereCollider sphere) {
+      return this.collidesWithSphere(sphere);
+    } else {
+      throw new RuntimeException("Unsupported collider type");
+    }
+  }
 
-    for (PVector axis : axes) {
-      thisProjection = this.project(axis);
-      otherProjection = other.project(axis);
-      if (!this.overlap(thisProjection, otherProjection)) {
-        return false;
+  public static PVector getAveragedEdgeNormal(PVector point, Edge[] edges, float radius) {
+    PVector normal = new PVector(0, 0, 0);
+    int count = 0;
+    for (Edge edge : edges) {
+      if (edge.edgeWithinCircle(point, radius)) {
+        normal.add(edge.normal());
+        count++;
       }
     }
-    for (PVector axis : otherAxes) {
-      thisProjection = this.project(axis);
-      otherProjection = other.project(axis);
-      if (!this.overlap(thisProjection, otherProjection)) {
-        return false;
+    if (count > 0) {
+      normal.div(count);
+      normal.normalize();
+    }
+    return normal;
+  }
+
+  public CollisionData collidesWithBox(BoxCollider other) {
+    List<PVector> verticesA = Arrays.asList(this.box.vertices()).stream().map(Vertex::worldPosition)
+        .toList();
+    List<PVector> verticesB = Arrays.asList(other.box.vertices()).stream().map(Vertex::worldPosition)
+        .toList();
+
+    float minOverlap = Float.MAX_VALUE;
+    PVector collisionNormal = null;
+    PVector collisionPoint = null;
+
+    for (int i = 0; i < verticesA.size(); i++) {
+      PVector vertexA = verticesA.get(i);
+      PVector vertexB = verticesA.get((i + 1) % verticesA.size());
+
+      PVector edge = PVector.sub(vertexA, vertexB);
+      PVector axis = new PVector(-edge.y, edge.x, 0);
+      axis.normalize();
+
+      Pair<Float, Float> projectionsA = projectVertices(verticesA, axis);
+      Pair<Float, Float> projectionsB = projectVertices(verticesB, axis);
+      float minA = projectionsA.first();
+      float maxA = projectionsA.second();
+      float minB = projectionsB.first();
+      float maxB = projectionsB.second();
+
+      if (minA > maxB || minB > maxA) {
+        return null;
+      }
+
+      float axisDepth = Math.min(maxB - minA, maxA - minB);
+
+      if (axisDepth < minOverlap) {
+        minOverlap = axisDepth;
+        collisionNormal = axis;
       }
     }
-    return true;
+
+    for (int i = 0; i < verticesB.size(); i++) {
+      PVector vertexA = verticesB.get(i);
+      PVector vertexB = verticesB.get((i + 1) % verticesB.size());
+
+      PVector edge = PVector.sub(vertexA, vertexB);
+      PVector axis = new PVector(-edge.y, edge.x, 0);
+      axis.normalize();
+
+      Pair<Float, Float> projectionsA = projectVertices(verticesA, axis);
+      Pair<Float, Float> projectionsB = projectVertices(verticesB, axis);
+      float minA = projectionsA.first();
+      float maxA = projectionsA.second();
+      float minB = projectionsB.first();
+      float maxB = projectionsB.second();
+
+      if (minA >= maxB || minB >= maxA) {
+        return null;
+      }
+
+      float axisDepth = Math.min(maxB - minA, maxA - minB);
+
+      if (axisDepth < minOverlap) {
+        minOverlap = axisDepth;
+        collisionNormal = axis;
+      }
+    }
+
+    collisionPoint = PVector.mult(collisionNormal, minOverlap).add(this.center());
+
+    PVector thisCenter = this.center();
+    PVector otherCenter = other.center();
+    PVector directionToOther = PVector.sub(otherCenter, thisCenter);
+    if (directionToOther.dot(collisionNormal) < 0) {
+      collisionNormal.mult(-1);
+    }
+
+    PVector relativeVelocity = this.getRelativeVelocity(other);
+
+    return new CollisionData(other, collisionNormal, collisionPoint, minOverlap, relativeVelocity);
   }
 
-  public PVector[] getAxes() {
-    return AXES;
-  }
-
-  public float[] project(PVector axis) {
-    PVector center = this.centerPosition();
-    float halfWidth = this.width / 2;
-    float halfLength = this.length / 2;
-    float halfHeight = this.height / 2;
-    float centerDot = center.dot(axis);
-    float[] projection = new float[6];
-    projection[0] = centerDot - halfWidth;
-    projection[1] = centerDot + halfWidth;
-    projection[2] = centerDot - halfLength;
-    projection[3] = centerDot + halfLength;
-    projection[4] = centerDot - halfHeight;
-    projection[5] = centerDot + halfHeight;
-    return projection;
-  }
-
-  public boolean overlap(float[] projection1, float[] projection2) {
-    return (projection1[0] >= projection2[0] && projection1[0] <= projection2[1])
-        || (projection1[1] >= projection2[0] && projection1[1] <= projection2[1])
-        || (projection2[0] >= projection1[0] && projection2[0] <= projection1[1])
-        || (projection2[1] >= projection1[0] && projection2[1] <= projection1[1]);
+  public CollisionData collidesWithSphere(SphereCollider other) {
+    PVector closestPoint = this.closestPointTo(other.center());
+    if (other.isPointInside(closestPoint)) {
+      PVector thisClosestPoint = other.closestPointTo(this.center());
+      PVector normal = PVector.sub(closestPoint, this.center());
+      normal.normalize();
+      float distance = thisClosestPoint.dist(closestPoint);
+      return new CollisionData(other, normal, closestPoint, distance,
+          this.getRelativeVelocity(other));
+    } else {
+      return null;
+    }
   }
 }

@@ -2,6 +2,7 @@ package green.liam.events;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EventManager<T> {
 
@@ -16,14 +17,15 @@ public class EventManager<T> {
   }
 
   public void notify(T event) {
-    if (event == null) throw new IllegalArgumentException(
-      "Event cannot be null"
-    );
-    if (this.observers.size() == 0) return;
+    if (event == null)
+      throw new IllegalArgumentException(
+          "Event cannot be null");
+    if (this.observers.size() == 0)
+      return;
 
-    Set<Observer<T>> observersCopy = new HashSet<>(this.observers);
-    for (Observer<T> observer : observersCopy) {
-      observer.onNotify(event);
-    }
+    Set<Observer<T>> observersCopy = ConcurrentHashMap.newKeySet(this.observers.size());
+    observersCopy.addAll(this.observers);
+    observersCopy.parallelStream().forEach(observer -> observer.onNotify(event));
+
   }
 }

@@ -1,5 +1,8 @@
 package green.liam.rendering;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import green.liam.base.Game;
 import processing.core.PApplet;
 
@@ -24,5 +27,9 @@ public interface Renderable extends Comparable<Renderable> {
     }
     Camera camera = Game.getInstance().getCamera();
     return Float.compare(this.getDepth(camera), other.getDepth(camera));
+  }
+
+  default Set<Renderable> getChildren() {
+    return new HashSet<>();
   }
 }

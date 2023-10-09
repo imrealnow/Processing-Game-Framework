@@ -33,25 +33,21 @@ public class InfiniteGround extends Shape {
   private void createQuad() {
     this.vertices = new Vertex[4];
     this.edges = new Edge[4];
-    this.vertices[0] =
-      new Vertex(this.transform, new PVector(-RADIUS, -RADIUS), 0);
-    this.vertices[1] =
-      new Vertex(this.transform, new PVector(RADIUS, -RADIUS), 0);
-    this.vertices[2] =
-      new Vertex(this.transform, new PVector(RADIUS, RADIUS), 0);
-    this.vertices[3] =
-      new Vertex(this.transform, new PVector(-RADIUS, RADIUS), 0);
+    this.vertices[0] = new Vertex(this.transform, new PVector(-RADIUS, -RADIUS), 0);
+    this.vertices[1] = new Vertex(this.transform, new PVector(RADIUS, -RADIUS), 0);
+    this.vertices[2] = new Vertex(this.transform, new PVector(RADIUS, RADIUS), 0);
+    this.vertices[3] = new Vertex(this.transform, new PVector(-RADIUS, RADIUS), 0);
     this.edges[0] = new Edge(this.vertices[0], this.vertices[1]);
     this.edges[1] = new Edge(this.vertices[1], this.vertices[2]);
     this.edges[2] = new Edge(this.vertices[2], this.vertices[3]);
     this.edges[3] = new Edge(this.vertices[3], this.vertices[0]);
     Quad quad = new Quad(
-      this.vertices[0],
-      this.vertices[1],
-      this.vertices[2],
-      this.vertices[3]
-    );
+        this.vertices[0],
+        this.vertices[1],
+        this.vertices[2],
+        this.vertices[3]);
     quad.setIsLit(false);
+    quad.setFillColour(new float[] { 255, 255, 255, 255 });
     this.quad = quad;
   }
 
@@ -69,8 +65,7 @@ public class InfiniteGround extends Shape {
     if (this.followTarget != null) {
       this.transform.setPosition(this.followTarget.position());
     }
-    float scaleDeterminant =
-      this.texture.width / (RADIUS * 2f) + Float.MIN_VALUE;
+    float scaleDeterminant = this.texture.width / (RADIUS * 2f) + Float.MIN_VALUE;
     this.quad.setUVOffset(this.followTarget.position().mult(-scaleDeterminant));
     this.quad.render(game);
   }

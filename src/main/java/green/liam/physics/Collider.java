@@ -22,7 +22,22 @@ public abstract class Collider extends Component {
     return this;
   }
 
-  public abstract boolean collidesWith(Collider other);
+  protected PVector getRelativeVelocity(Collider other) {
+    PVector relativeVelocity = new PVector(0, 0, 0);
+    if (this.gameObject.hasComponent(Rigidbody.class)) {
+      Rigidbody rigidbody = this.gameObject.getComponent(Rigidbody.class);
+      relativeVelocity = rigidbody.velocity().copy();
+    }
+    if (other.gameObject().hasComponent(Rigidbody.class)) {
+      Rigidbody rigidbody = other.gameObject().getComponent(Rigidbody.class);
+      relativeVelocity.sub(rigidbody.velocity());
+    }
+    return relativeVelocity;
+  }
+
+  public abstract PVector center();
+
+  public abstract CollisionData collidesWith(Collider other);
 
   public abstract boolean isPointInside(PVector point);
 

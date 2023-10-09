@@ -1,13 +1,16 @@
 package green.liam.rendering.camera;
 
 import green.liam.base.Transform;
+import green.liam.util.Pair;
 import processing.core.PMatrix2D;
+import processing.core.PVector;
 
 public interface CameraProjector {
   /**
    * Get the projection matrix for the camera.
    *
-   * @param transform transform of the camera.
+   * @param transform
+   *          transform of the camera.
    * @return projection matrix for the camera.
    */
   PMatrix2D getProjectionMatrix(Transform transform);
@@ -20,10 +23,12 @@ public interface CameraProjector {
   float getYScale();
 
   /**
-   * Get ratio of height to ground y position. 1 to prioritize height, 0 to prioritize ground y
+   * Get ratio of height to ground y position. 1 to prioritize height, 0 to
+   * prioritize ground y
    * position.
    *
    * @return ratio of height to ground y position.
    */
   float depthAlpha();
+
 }

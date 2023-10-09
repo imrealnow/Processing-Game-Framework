@@ -1,8 +1,10 @@
 package green.liam.base;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,6 +17,7 @@ public enum Time {
 
   long lastTime = System.currentTimeMillis();
   float timeScale = 1f;
+  Queue<Long> deltaTimes = new ArrayDeque<>();
 
   private Time() {
   }
@@ -28,7 +31,15 @@ public enum Time {
   }
 
   public void update() {
+    this.deltaTimes.add(System.currentTimeMillis() - this.lastTime);
+    if (this.deltaTimes.size() > 10) {
+      this.deltaTimes.remove();
+    }
     this.lastTime = System.currentTimeMillis();
+  }
+
+  public long averageDeltaTime() {
+    return this.deltaTimes.stream().reduce(0L, Long::sum) / this.deltaTimes.size();
   }
 
   public void setTimeScale(float timeScale) {
@@ -55,7 +66,7 @@ public enum Time {
     if (this.loops.containsKey(name)) {
       this.loops.get(name).timer().cancel();
     }
-    Timer timer = new Timer(true);
+    Timer timer = new Timer(false);
     TimerTask task = new TimerTask() {
       @Override
       public void run() {

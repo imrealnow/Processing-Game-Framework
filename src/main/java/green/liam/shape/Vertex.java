@@ -2,20 +2,26 @@ package green.liam.shape;
 
 import green.liam.base.Game;
 import green.liam.base.Transform;
+import green.liam.events.Observer;
+import green.liam.events.TransformChangeEvent;
 import green.liam.rendering.Camera;
 import processing.core.PMatrix2D;
 import processing.core.PVector;
 
-public class Vertex {
+public class Vertex implements Observer<TransformChangeEvent> {
 
   Transform transform;
   PVector localPosition;
   float height;
 
+  boolean transformChanged = false;
+  PVector worldPositionCache = null;
+
   public Vertex(Transform transform, PVector localPosition, float height) {
     this.transform = transform;
     this.localPosition = localPosition;
     this.height = height;
+    // this.transform.addChangeObserver(this);
   }
 
   public Vertex copy() {
@@ -43,15 +49,13 @@ public class Vertex {
   public PVector translatedPosition() {
     Camera camera = Game.getInstance().getCamera();
     PVector halfScreenDimensions = Game
-      .getInstance()
-      .getScreenDimensions()
-      .mult(0.5f);
+        .getInstance()
+        .getScreenDimensions()
+        .mult(0.5f);
     PVector position = this.localPosition.copy();
     position.rotate(this.transform.rotationInRadians());
     // Transform by the object's local matrix
-    PMatrix2D localMatrix2d = this.transform.getCombinedMatrix();
-    PVector localTransformedPosition = new PVector();
-    localMatrix2d.mult(position, localTransformedPosition);
+    PVector localTransformedPosition = this.worldPosition();
 
     // Apply the camera's projection matrix
     PMatrix2D cameraProjectionMatrix2d = camera.getProjectionMatrix();
@@ -60,10 +64,18 @@ public class Vertex {
 
     // Apply the height offset and adjust for screen centering
     PVector heightOffset = new PVector(0, this.height(), 0)
-      .mult(camera.getYScale());
+        .mult(camera.getYScale());
     projectedPosition.add(heightOffset);
     projectedPosition.add(halfScreenDimensions);
     return projectedPosition;
+
+  }
+
+  public PVector worldPosition() {
+    PMatrix2D localMatrix2d = this.transform.getCombinedMatrix();
+    PVector localTransformedPosition = new PVector();
+    localMatrix2d.mult(this.localPosition, localTransformedPosition);
+    return localTransformedPosition;
   }
 
   public PVector localPosition() {
@@ -76,12 +88,21 @@ public class Vertex {
   }
 
   public float height() {
-    Camera camera = Game.getInstance().getCamera();
     return (-(this.height + this.transform.height()) * this.transform.yScale());
   }
 
   public Vertex setHeight(float height) {
     this.height = height;
     return this;
+  }
+
+  public float yPos() {
+    return this.translatedPosition().y - this.height();
+  }
+
+  @Override
+  public void onNotify(TransformChangeEvent event) {
+    // invalidate the cache
+    this.worldPositionCache = null;
   }
 }

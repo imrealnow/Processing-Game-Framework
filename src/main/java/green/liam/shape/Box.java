@@ -8,6 +8,7 @@ import green.liam.rendering.Renderable;
 import java.util.Collection;
 import java.util.Set;
 import processing.core.PApplet;
+import processing.core.PImage;
 import processing.core.PVector;
 
 public class Box extends Shape implements CompositeRenderable {
@@ -16,6 +17,7 @@ public class Box extends Shape implements CompositeRenderable {
   float length;
   float height;
   Quad[] faces = new Quad[5]; // bottom quad can never be seen from fixed view pitch angle
+  Quad bottomFace;
 
   public Box(float width, float length, float height) {
     super();
@@ -39,6 +41,10 @@ public class Box extends Shape implements CompositeRenderable {
 
   public float width() {
     return this.width;
+  }
+
+  public Quad bottomFace() {
+    return this.bottomFace;
   }
 
   public void setWidth(float width) {
@@ -68,6 +74,28 @@ public class Box extends Shape implements CompositeRenderable {
     this.createVertices();
     this.createEdges();
     this.createFaces();
+  }
+
+  public void setTopTexture(PImage texture) {
+    this.faces[0].setTexture(texture);
+  }
+
+  public void setSideTextures(PImage texture) {
+    for (int i = 1; i < this.faces.length; i++) {
+      this.faces[i].setTexture(texture);
+    }
+  }
+
+  public void setFillColour(float[] colour) {
+    for (Quad face : this.faces) {
+      face.setFillColour(colour);
+    }
+  }
+
+  public void setStrokeColour(float[] colour) {
+    for (Quad face : this.faces) {
+      face.setStrokeColour(colour);
+    }
   }
 
   protected void createVertices() {
@@ -108,24 +136,20 @@ public class Box extends Shape implements CompositeRenderable {
 
   protected void createFaces() {
     this.faces = new Quad[5];
+    this.bottomFace = new Quad(this.edges[0], this.edges[1], this.edges[2], this.edges[3]);
     // top face
-    this.faces[0] =
-      new Quad(this.edges[4], this.edges[5], this.edges[6], this.edges[7]);
+    this.faces[0] = new Quad(this.edges[4], this.edges[5], this.edges[6], this.edges[7]);
     // front face
-    this.faces[1] =
-      new Quad(this.edges[0], this.edges[9], this.edges[5], this.edges[4])
+    this.faces[1] = new Quad(this.edges[0], this.edges[9], this.edges[5], this.edges[4])
         .setIsVertical(this.edges[0]);
     // right face
-    this.faces[2] =
-      new Quad(this.edges[1], this.edges[10], this.edges[6], this.edges[5])
+    this.faces[2] = new Quad(this.edges[1], this.edges[10], this.edges[6], this.edges[5])
         .setIsVertical(this.edges[1]);
     // back face
-    this.faces[3] =
-      new Quad(this.edges[2], this.edges[11], this.edges[7], this.edges[6])
+    this.faces[3] = new Quad(this.edges[2], this.edges[11], this.edges[7], this.edges[6])
         .setIsVertical(this.edges[2]);
     // left face
-    this.faces[4] =
-      new Quad(this.edges[3], this.edges[8], this.edges[4], this.edges[7])
+    this.faces[4] = new Quad(this.edges[3], this.edges[8], this.edges[4], this.edges[7])
         .setIsVertical(this.edges[3]);
   }
 
