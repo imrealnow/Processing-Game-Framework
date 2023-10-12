@@ -36,8 +36,10 @@ public enum CardinalDirection {
   /**
    * Constructs a new cardinal direction.
    *
-   * @param x The X component of the direction.
-   * @param y The Y component of the direction.
+   * @param x
+   *          The X component of the direction.
+   * @param y
+   *          The Y component of the direction.
    */
   CardinalDirection(int x, int y) {
     this.x = x;
@@ -93,6 +95,36 @@ public enum CardinalDirection {
     }
   }
 
+  public static CardinalDirection fromDegrees(float degrees) {
+    float angle = ((degrees + 180) % 360 + 360) % 360 - 180;
+    int rounded = (int) Math.round(angle / 45) * 45;
+    switch (rounded) {
+      case -180, 180:
+        return North;
+      case -135:
+        return Northeast;
+      case -90:
+        return East;
+      case -45:
+        return Southeast;
+      case 0:
+        return South;
+      case 45:
+        return Southwest;
+      case 90:
+        return West;
+      case 135:
+        return Northwest;
+      default:
+        throw new RuntimeException("Invalid cardinal direction:" + rounded);
+    }
+  }
+
+  public static CardinalDirection fromNormalVector(PVector vector) {
+    float angle = vector.heading();
+    return fromDegrees(angle);
+  }
+
   /**
    * Gets the angle (in radians) corresponding to the cardinal direction.
    *
@@ -119,5 +151,10 @@ public enum CardinalDirection {
       default:
         throw new RuntimeException("Invalid cardinal direction");
     }
+  }
+
+  public CardinalDirection rotate(float degrees) {
+    float angle = (float) Math.toDegrees(this.angle()) + degrees;
+    return CardinalDirection.fromDegrees(angle);
   }
 }

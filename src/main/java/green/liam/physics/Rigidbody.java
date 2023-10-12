@@ -129,7 +129,7 @@ public class Rigidbody extends Component {
       PVector drag = this.velocity.copy().normalize().mult(-dragScalar);
       this.velocity.add(drag);
     }
-    if (this.velocity.mag() < 0.1f) {
+    if (this.velocity.mag() < 0.01f) {
       this.velocity = new PVector(0, 0, 0);
     }
   }

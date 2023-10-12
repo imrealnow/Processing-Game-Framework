@@ -8,20 +8,30 @@ import green.liam.rendering.Camera;
 import processing.core.PMatrix2D;
 import processing.core.PVector;
 
-public class Vertex implements Observer<TransformChangeEvent> {
+public class Vertex {
 
   Transform transform;
   PVector localPosition;
   float height;
 
   boolean transformChanged = false;
+
+  long translatedPositionCacheFrame = -1;
+  long worldPositionCacheFrame = -1;
+  PVector translatedPositionCache = null;
   PVector worldPositionCache = null;
 
   public Vertex(Transform transform, PVector localPosition, float height) {
     this.transform = transform;
     this.localPosition = localPosition;
     this.height = height;
-    // this.transform.addChangeObserver(this);
+  }
+
+  public void destroy() {
+    this.transform = null;
+    this.localPosition = null;
+    this.worldPositionCache = null;
+    this.translatedPositionCache = null;
   }
 
   public Vertex copy() {
@@ -47,13 +57,20 @@ public class Vertex implements Observer<TransformChangeEvent> {
   }
 
   public PVector translatedPosition() {
+    long currentFrame = Game.getInstance().getFrameCount();
+    if (this.translatedPositionCacheFrame != currentFrame) {
+      this.translatedPositionCacheFrame = currentFrame;
+      this.translatedPositionCache = this.calculateTranslatedPosition();
+    }
+    return this.translatedPositionCache;
+  }
+
+  public PVector calculateTranslatedPosition() {
     Camera camera = Game.getInstance().getCamera();
     PVector halfScreenDimensions = Game
         .getInstance()
         .getScreenDimensions()
         .mult(0.5f);
-    PVector position = this.localPosition.copy();
-    position.rotate(this.transform.rotationInRadians());
     // Transform by the object's local matrix
     PVector localTransformedPosition = this.worldPosition();
 
@@ -72,6 +89,15 @@ public class Vertex implements Observer<TransformChangeEvent> {
   }
 
   public PVector worldPosition() {
+    long currentFrame = Game.getInstance().getFrameCount();
+    if (this.worldPositionCacheFrame != currentFrame) {
+      this.worldPositionCacheFrame = currentFrame;
+      this.worldPositionCache = this.calculateWorldPosition();
+    }
+    return this.worldPositionCache;
+  }
+
+  public PVector calculateWorldPosition() {
     PMatrix2D localMatrix2d = this.transform.getCombinedMatrix();
     PVector localTransformedPosition = new PVector();
     localMatrix2d.mult(this.localPosition, localTransformedPosition);
@@ -98,11 +124,5 @@ public class Vertex implements Observer<TransformChangeEvent> {
 
   public float yPos() {
     return this.translatedPosition().y - this.height();
-  }
-
-  @Override
-  public void onNotify(TransformChangeEvent event) {
-    // invalidate the cache
-    this.worldPositionCache = null;
   }
 }

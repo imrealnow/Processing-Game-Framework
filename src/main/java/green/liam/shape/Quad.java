@@ -16,13 +16,18 @@ import processing.core.PImage;
 import processing.core.PVector;
 
 public class Quad implements Renderable {
+  private static PImage blankTexture = null;
+  static {
+    blankTexture = new PImage(1, 1, PApplet.RGB);
+    blankTexture.pixels[0] = 0xffffffff;
+  }
 
-  final Edge[] edges = new Edge[4];
+  Edge[] edges = new Edge[4];
   protected PVector uvOffset = new PVector(0, 0);
   protected PVector uvScale = new PVector(1, 1);
   boolean isLit = false;
   boolean isVertical = false;
-  boolean castShadow = true;
+  boolean castShadow = false;
   boolean drawStroke = true;
   boolean overrideDepth = false;
   float depthOverride;
@@ -72,10 +77,43 @@ public class Quad implements Renderable {
     this(vertices[0], vertices[1], vertices[2], vertices[3]);
   }
 
+  public Quad(Transform transform, float width, float length) {
+    float halfWidth = width / 2;
+    float halfLength = length / 2;
+    Vertex[] vertices = new Vertex[4];
+    vertices[0] = new Vertex(transform, new PVector(-halfWidth, -halfLength, 0), 0);
+    vertices[1] = new Vertex(transform, new PVector(halfWidth, -halfLength, 0), 0);
+    vertices[2] = new Vertex(transform, new PVector(halfWidth, halfLength, 0), 0);
+    vertices[3] = new Vertex(transform, new PVector(-halfWidth, halfLength, 0), 0);
+    this.edges[0] = new Edge(vertices[0], vertices[1]);
+    this.edges[1] = new Edge(vertices[1], vertices[2]);
+    this.edges[2] = new Edge(vertices[2], vertices[3]);
+    this.edges[3] = new Edge(vertices[3], vertices[0]);
+    this.min = vertices[0];
+    this.max = vertices[2];
+    this.initialise();
+  }
+
+  public void destroy() {
+    Game.getInstance().forceCacheRemoval(this.texture);
+    for (Edge edge : this.edges) {
+      edge.destroy();
+    }
+    this.edges = null;
+    this.min = null;
+    this.max = null;
+    this.normal = null;
+    this.texture = null;
+    this.leadingEdge = null;
+    this.shadowQuad = null;
+    this.vertexUVs = null;
+    this.uvOffset = null;
+    this.uvScale = null;
+    this.dimensions = null;
+  }
+
   private void initialise() {
     this.normal = this.calculateNormal();
-    PImage blankTexture = Game.getInstance().createImage(1, 1, PApplet.RGB);
-    blankTexture.pixels[0] = Game.getInstance().color(255, 255, 255);
     this.texture = blankTexture;
   }
 
@@ -286,7 +324,7 @@ public class Quad implements Renderable {
         game.vertex(pos.x, pos.y);
     }
 
-    game.endShape(Game.CLOSE);
+    game.endShape(PApplet.CLOSE);
   }
 
   @Override

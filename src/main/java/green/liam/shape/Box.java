@@ -39,6 +39,23 @@ public class Box extends Shape implements CompositeRenderable {
     this.createFaces();
   }
 
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    if (this.faces != null) {
+      for (Quad face : this.faces) {
+        face.destroy();
+      }
+      this.faces = null;
+    }
+    if (this.bottomFace != null) {
+      this.bottomFace.destroy();
+      this.bottomFace = null;
+    }
+    this.edges = null;
+    this.vertices = null;
+  }
+
   public float width() {
     return this.width;
   }

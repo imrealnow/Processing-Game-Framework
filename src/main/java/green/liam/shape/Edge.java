@@ -13,6 +13,17 @@ public class Edge {
     this.end = end;
   }
 
+  public void destroy() {
+    if (this.start != null) {
+      this.start.destroy();
+    }
+    if (this.end != null) {
+      this.end.destroy();
+    }
+    this.start = null;
+    this.end = null;
+  }
+
   public Vertex start() {
     return this.start;
   }

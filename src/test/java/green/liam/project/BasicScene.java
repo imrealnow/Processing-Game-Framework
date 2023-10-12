@@ -1,4 +1,4 @@
-package green.liam;
+package green.liam.project;
 
 import green.liam.base.Component;
 import green.liam.base.Game;

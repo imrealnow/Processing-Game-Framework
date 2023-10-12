@@ -56,8 +56,8 @@ public class Sphere extends Shape {
     @Override
     public float getDepth(Camera camera) {
         float cameraAlpha = camera.depthAlpha();
-        float yPos = this.center.translatedPosition().y;
-        return this.center.height() * cameraAlpha + yPos * (1 - cameraAlpha) + this.radius * 2.5f;
+        float yPos = this.center.translatedPosition().y - this.center.height();
+        return cameraAlpha * -this.center.height() + (1 - cameraAlpha) * yPos;
     }
 
     @Override

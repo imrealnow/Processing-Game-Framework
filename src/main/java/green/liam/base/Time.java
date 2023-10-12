@@ -39,7 +39,8 @@ public enum Time {
   }
 
   public long averageDeltaTime() {
-    return this.deltaTimes.stream().reduce(0L, Long::sum) / this.deltaTimes.size();
+    Queue<Long> deltaTimes = new ArrayDeque<>(this.deltaTimes);
+    return deltaTimes.stream().reduce(0L, Long::sum) / this.deltaTimes.size();
   }
 
   public void setTimeScale(float timeScale) {
@@ -66,7 +67,7 @@ public enum Time {
     if (this.loops.containsKey(name)) {
       this.loops.get(name).timer().cancel();
     }
-    Timer timer = new Timer(false);
+    Timer timer = new Timer(true);
     TimerTask task = new TimerTask() {
       @Override
       public void run() {

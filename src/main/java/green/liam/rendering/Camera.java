@@ -24,20 +24,6 @@ public class Camera
     this.updateMatrix();
   }
 
-  public Pair<PVector, PVector> getScreenBounds() {
-    // use projection matrix to get screen bounds
-    Game game = Game.getInstance();
-    float halfWidth = game.width / 2;
-    float halfHeight = game.height / 2;
-    PVector topLeft = new PVector(-halfWidth, -halfHeight);
-    PVector bottomRight = new PVector(halfWidth, halfHeight);
-    PVector transformedTopLeft = new PVector();
-    PVector transformedBottomRight = new PVector();
-    this.inverseMatrix.mult(topLeft, transformedTopLeft);
-    this.inverseMatrix.mult(bottomRight, transformedBottomRight);
-    return new Pair<>(transformedTopLeft, transformedBottomRight);
-  }
-
   public float getYScale() {
     return this.currentProjector.getYScale();
   }
@@ -48,8 +34,6 @@ public class Camera
 
   private void updateMatrix() {
     this.projectionMatrix = this.currentProjector.getProjectionMatrix(this.transform);
-    this.inverseMatrix = this.projectionMatrix.get();
-    this.inverseMatrix.invert();
   }
 
   public PMatrix2D getProjectionMatrix() {

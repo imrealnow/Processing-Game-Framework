@@ -14,22 +14,23 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 import processing.core.PApplet;
+import processing.core.PGraphics;
+import processing.core.PImage;
 import processing.core.PVector;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 import processing.opengl.PGraphicsOpenGL;
+import processing.opengl.Texture;
 
-public class Game extends PApplet {
+public class Game {
 
   private static Game instance = null;
   private final Camera camera;
   private List<GameObject> gameObjects = new ArrayList<>();
 
   private static final int frameRate = 120;
-  private static final int updateRate = 120;
-
+  private long frameCount = 0;
   private PApplet parent;
-
   private Set<Renderable> renderQueueBuffer = new HashSet<>();
 
   /**
@@ -51,12 +52,6 @@ public class Game extends PApplet {
    */
   public Game() {
     this(null, new Isometric3DProjector());
-    this.parent = this;
-  }
-
-  public static void main(String[] args) {
-    instance = new Game();
-    PApplet.runSketch(new String[] { "green.liam.base.Game" }, instance);
   }
 
   public static Game getInstance() {
@@ -70,14 +65,27 @@ public class Game extends PApplet {
     return this.parent;
   }
 
+  public long getFrameCount() {
+    return this.frameCount;
+  }
+
+  public void forceCacheRemoval(PImage img) {
+    PGraphics pg = this.parent.g;
+    Object cache = pg.getCache(img);
+
+    if (cache instanceof Texture)
+      ((Texture) cache).disposeSourceBuffer();
+
+    pg.removeCache(img);
+  }
+
   public PVector getScreenDimensions() {
     return new PVector(this.parent.width, this.parent.height);
   }
 
   public void initialise(boolean useNearestNeighbour) {
-    Time.INSTANCE.loop("update", Game.updateRate, this::update);
     this.parent.frameRate(Game.frameRate);
-    this.parent.textureMode(NORMAL);
+    this.parent.textureMode(PApplet.NORMAL);
     if (useNearestNeighbour)
       ((PGraphicsOpenGL) this.parent.g).textureSampling(2);
   }
@@ -100,13 +108,24 @@ public class Game extends PApplet {
     gameObject.onDestroy();
   }
 
-  @Override
+  public void removeAllGameObjects() {
+    List<GameObject> listCopy = new ArrayList<>(this.gameObjects);
+    for (GameObject gameObject : listCopy) {
+      if (gameObject == this.camera)
+        continue;
+      this.removeGameObject(gameObject);
+    }
+    this.gameObjects.clear();
+    PhysicsManager.instance().clear();
+    this.gameObjects.add(this.camera);
+    System.gc();
+  }
+
   public void handleKeyEvent(KeyEvent event) {
     // reroutes key events to InputManager
     InputManager.INSTANCE.handleKeyEvent(event);
   }
 
-  @Override
   public void handleMouseEvent(MouseEvent event) {
     // reroutes mouse events to InputManager
     InputManager.INSTANCE.handleMouseEvent(event);
@@ -152,7 +171,8 @@ public class Game extends PApplet {
     Set<Renderable> visited = new HashSet<Renderable>();
     renderQueue.addAll(this.renderQueueBuffer);
     this.renderQueueBuffer.clear();
-    for (GameObject gameObject : this.gameObjects) {
+    List<GameObject> listCopy = new ArrayList<>(this.gameObjects);
+    for (GameObject gameObject : listCopy) {
       if (gameObject instanceof Renderable) {
         this.unpackRenderables((Renderable) gameObject, renderQueue, visited);
       }
@@ -160,8 +180,9 @@ public class Game extends PApplet {
     return renderQueue;
   }
 
-  @Override
   public void draw() {
+    this.frameCount++;
+    this.update();
     this.parent.background(0);
     this.parent.fill(120);
     this.parent.stroke(200);

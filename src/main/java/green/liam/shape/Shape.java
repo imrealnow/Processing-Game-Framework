@@ -22,6 +22,23 @@ public abstract class Shape extends GameObject implements Renderable {
     super(parent);
   }
 
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    if (this.edges != null) {
+      for (Edge edge : this.edges()) {
+        edge.destroy();
+      }
+    }
+    if (this.vertices != null) {
+      for (Vertex vertex : this.vertices()) {
+        vertex.destroy();
+      }
+    }
+    this.edges = null;
+    this.vertices = null;
+  }
+
   public Edge[] edges() {
     return this.edges;
   }
@@ -57,7 +74,7 @@ public abstract class Shape extends GameObject implements Renderable {
       pos = Helper.roundPVector(pos, 2);
       game.vertex(pos.x, pos.y);
     }
-    game.endShape(Game.CLOSE);
+    game.endShape(PApplet.CLOSE);
   }
 
   @Override

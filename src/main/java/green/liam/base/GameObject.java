@@ -95,6 +95,7 @@ public class GameObject {
     for (Component component : this.components) {
       component.onDestroy();
     }
+    this.components.clear();
   }
 
   public static GameObject findWithTag(String tag) {

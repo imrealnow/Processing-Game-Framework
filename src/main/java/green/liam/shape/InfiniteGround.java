@@ -30,6 +30,15 @@ public class InfiniteGround extends Shape {
     this.transform.setParent(parent);
   }
 
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    this.quad.destroy();
+    this.quad = null;
+    this.texture = null;
+    this.followTarget = null;
+  }
+
   private void createQuad() {
     this.vertices = new Vertex[4];
     this.edges = new Edge[4];

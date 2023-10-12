@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import green.liam.base.Game;
 import green.liam.base.Time;
 import green.liam.shape.Sprite;
 import processing.core.PImage;
@@ -22,14 +23,11 @@ public class SpriteAnimation {
     }
 
     private JSONObject animationData;
-    private final PImage spriteSheet;
-    private final Sprite spriteObject;
+    private PImage spriteSheet;
 
     private PImage[] frames;
     private final String name;
     private final int frameCount;
-    private final int width;
-    private final int height;
     private int frameDurationMs;
 
     private Map<Integer, Runnable> onFrameCallbacks = new HashMap<>();
@@ -40,30 +38,23 @@ public class SpriteAnimation {
     private AnimationState animationState = AnimationState.STOPPED;
     private AnimationState previousAnimationState = AnimationState.STOPPED;
 
-    public SpriteAnimation(String name, JSONObject animationData, PImage spriteSheet,
-            Sprite spriteObject) {
+    public SpriteAnimation(String name, JSONObject animationData, PImage spriteSheet) {
         this.name = name;
         this.animationData = animationData;
         this.spriteSheet = spriteSheet;
-        this.spriteObject = spriteObject;
 
         JSONArray frameArray = animationData.getJSONArray("frames");
         this.frameCount = frameArray.size();
         this.frames = new PImage[this.frameCount];
-        this.width = animationData.getJSONObject("meta").getJSONObject("size").getInt("w");
-        this.height = animationData.getJSONObject("meta").getJSONObject("size").getInt("h");
 
         this.initializeFrames(frameArray);
     }
 
     public SpriteAnimation(String name, PImage spriteSheet, int frameCount, int width, int height, int rows,
-            int columns, int frameDurationMs, Sprite spriteObject) {
+            int columns, int frameDurationMs) {
         this.name = name;
         this.spriteSheet = spriteSheet;
-        this.spriteObject = spriteObject;
         this.frameCount = frameCount;
-        this.width = width;
-        this.height = height;
         this.frameDurationMs = frameDurationMs;
 
         this.initializeFrames(spriteSheet, frameCount, width, height, rows, columns);
@@ -91,13 +82,26 @@ public class SpriteAnimation {
         this.frameDurationMs = (int) Math.round(frameDurationSum / (double) this.frameCount);
     }
 
-    private void initializeFrames(PImage spriteSheet, int frameCount, int width, int height, int rows, int columns) {
+    private void initializeFrames(PImage spriteSheet, int frameCount, int totalWidth, int totalHeight, int rows,
+            int columns) {
         this.frames = new PImage[frameCount];
+        int width = totalWidth / columns;
+        int height = totalHeight / rows;
         for (int i = 0; i < frameCount; i++) {
             int x = (i % columns) * width;
             int y = (i / columns) * height;
             this.frames[i] = spriteSheet.get(x, y, width, height);
         }
+    }
+
+    public void destroy() {
+        Game game = Game.getInstance();
+        game.forceCacheRemoval(this.spriteSheet);
+        this.spriteSheet = null;
+        for (PImage frame : this.frames) {
+            game.forceCacheRemoval(frame);
+        }
+        this.frames = null;
     }
 
     private void setState(AnimationState state) {
@@ -109,14 +113,37 @@ public class SpriteAnimation {
         this.setFrame(0);
     }
 
-    private void setFrame(int frame) {
+    public PImage setFrame(int frame) {
         frame = frame % this.frameCount;
         if (this.onFrameCallbacks.containsKey(frame)) {
             this.onFrameCallbacks.get(frame).run();
         }
         this.currentFrame = frame;
         this.currentFrameTime = 0.0f;
-        this.spriteObject.setSpriteImage(this.frames[this.currentFrame]);
+        if (this.frames[frame] == null) {
+            System.out.println("Frame " + frame + " is null: " + this.name);
+        }
+        return this.frames[frame];
+    }
+
+    public String name() {
+        return this.name;
+    }
+
+    public int frameCount() {
+        return this.frameCount;
+    }
+
+    public PImage[] frames() {
+        return this.frames;
+    }
+
+    public PImage currentFrame() {
+        return this.frames[this.currentFrame];
+    }
+
+    public int currentFrameIndex() {
+        return this.currentFrame;
     }
 
     /**
@@ -202,12 +229,12 @@ public class SpriteAnimation {
     /**
      * Updates the animation state based on the elapsed time.
      */
-    public void update() {
+    public PImage update() {
         if (this.animationSpeed == 0.0f
                 || this.frameCount <= 1
                 || this.animationState == AnimationState.STOPPED
                 || this.animationState == AnimationState.PAUSED) {
-            return;
+            return null;
         }
 
         if (this.animationState == AnimationState.PLAYING && this.currentFrame == this.frameCount - 1) {
@@ -223,8 +250,10 @@ public class SpriteAnimation {
             if (nextFrame < 0) {
                 nextFrame = this.frameCount - 1;
             }
-            this.setFrame(nextFrame);
+            return this.setFrame(nextFrame);
         }
+
+        return null;
     }
 
 }

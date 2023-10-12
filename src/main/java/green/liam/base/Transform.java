@@ -5,6 +5,7 @@ import green.liam.events.EventManagerFactory;
 import green.liam.events.Observer;
 import green.liam.events.TransformChangeEvent;
 import green.liam.events.TransformChangeEvent.ChangeType;
+import green.liam.rendering.Camera;
 import green.liam.util.Helper;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
@@ -36,6 +37,8 @@ public class Transform extends Component {
   protected PMatrix2D translationMatrix = new PMatrix2D();
   protected PMatrix2D combinedMatrix = new PMatrix2D();
 
+  private boolean transformChanged = false;
+
   public Transform(GameObject gameObject, Transform parent) {
     super(gameObject);
     this.parent = parent;
@@ -50,6 +53,24 @@ public class Transform extends Component {
 
   public Transform() {
     this(null, IDENTITY);
+  }
+
+  @Override
+  public void onDestroy() {
+    this.parent.removeChild(this);
+    for (Transform child : this.children) {
+      child.setParent(null);
+      child.gameObject().onDestroy();
+    }
+    this.position = null;
+    this.scale = null;
+    this.children.clear();
+    this.children = null;
+    this.parent = null;
+    this.scaleMatrix = null;
+    this.rotationMatrix = null;
+    this.translationMatrix = null;
+    this.combinedMatrix = null;
   }
 
   public Transform getParent() {
@@ -151,7 +172,7 @@ public class Transform extends Component {
     this.parent.children.remove(this);
     this.parent = parent == null ? IDENTITY : parent;
     this.parent.children.add(this);
-    this.recalculateMatrix();
+    this.transformChanged = true;
   }
 
   public void setPosition(PVector position) {
@@ -162,7 +183,7 @@ public class Transform extends Component {
             this.position,
             position));
     this.position = position;
-    this.recalculateMatrix();
+    this.transformChanged = true;
   }
 
   public void translate(PVector translation) {
@@ -173,7 +194,7 @@ public class Transform extends Component {
             this.position,
             PVector.add(this.position, translation)));
     this.position.add(translation);
-    this.recalculateMatrix();
+    this.transformChanged = true;
   }
 
   public void setRotation(float rotation) {
@@ -184,7 +205,7 @@ public class Transform extends Component {
             this.rotation,
             rotation));
     this.rotation = rotation;
-    this.recalculateMatrix();
+    this.transformChanged = true;
   }
 
   public void rotate(float rotation) {
@@ -195,14 +216,14 @@ public class Transform extends Component {
             this.rotation,
             this.rotation + rotation));
     this.rotation += rotation;
-    this.recalculateMatrix();
+    this.transformChanged = true;
   }
 
   public void setScale(PVector scale) {
     this.changeEventManager.notify(
         new TransformChangeEvent(this, ChangeType.SCALE, this.scale, scale));
     this.scale = scale;
-    this.recalculateMatrix();
+    this.transformChanged = true;
   }
 
   public void setLocalPosition(PVector position) {
@@ -243,6 +264,10 @@ public class Transform extends Component {
   }
 
   public PMatrix2D getCombinedMatrix() {
+    if (this.transformChanged) {
+      this.recalculateMatrix();
+      this.transformChanged = false;
+    }
     return this.combinedMatrix.get();
   }
 

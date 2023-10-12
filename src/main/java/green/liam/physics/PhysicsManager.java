@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import green.liam.physics.Rigidbody.RigidbodyType;
 import green.liam.util.Pair;
 import processing.core.PVector;
 
@@ -31,6 +32,12 @@ public class PhysicsManager {
     private PhysicsManager(int spatialGridSize, float cellSize) {
         this.spatialGridSize = spatialGridSize;
         this.cellSize = cellSize;
+        this.initialiseSpatialGrid();
+    }
+
+    public void clear() {
+        this.rigidbodies.clear();
+        this.rigidbodyCellIndices.clear();
         this.initialiseSpatialGrid();
     }
 
@@ -130,6 +137,10 @@ public class PhysicsManager {
         try {
             Set<Pair<Rigidbody, Rigidbody>> checkedPairs = new HashSet<>();
             for (Rigidbody rigidbody : this.rigidbodies) {
+                if (rigidbody.type() == RigidbodyType.STATIC)
+                    continue;
+                if (rigidbody.velocity().mag() == 0)
+                    continue;
                 CellIndex index = this.rigidbodyCellIndices.get(rigidbody);
                 Set<Rigidbody> nearbyBodies = this.getCombinedSetAround(index.x, index.y);
                 for (Rigidbody other : nearbyBodies) {
