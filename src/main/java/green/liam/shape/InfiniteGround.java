@@ -23,6 +23,7 @@ public class InfiniteGround extends Shape {
     this.quad.setTexture(this.texture);
     this.quad.setUVScale(new PVector(this.scale, this.scale));
     this.quad.castShadow = false;
+    this.quad.setVisibilityOverride(true);
   }
 
   public InfiniteGround(Transform parent, PImage texture, float scale) {

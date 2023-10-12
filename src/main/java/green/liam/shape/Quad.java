@@ -30,6 +30,7 @@ public class Quad implements Renderable {
   boolean castShadow = false;
   boolean drawStroke = true;
   boolean overrideDepth = false;
+  boolean visibilityOverride = false;
   float depthOverride;
   Quad shadowQuad;
   float[] fillColour = new float[] { 150, 150, 150, 255 };
@@ -232,6 +233,11 @@ public class Quad implements Renderable {
     return this;
   }
 
+  public Quad setVisibilityOverride(boolean visibilityOverride) {
+    this.visibilityOverride = visibilityOverride;
+    return this;
+  }
+
   public Quad setTexture(PImage texture) {
     this.texture = texture;
     this.textureSet = true;
@@ -398,7 +404,7 @@ public class Quad implements Renderable {
   }
 
   public boolean cameraCanSee() {
-    if (!this.isVertical)
+    if (this.visibilityOverride)
       return true;
     PVector cameraDirection = new PVector(0, -1, 0);
     PVector quadDirection = this.leadingEdge.normal();
