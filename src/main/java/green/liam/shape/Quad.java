@@ -406,9 +406,13 @@ public class Quad implements Renderable {
   public boolean cameraCanSee() {
     if (this.visibilityOverride)
       return true;
-    PVector cameraDirection = new PVector(0, -1, 0);
-    PVector quadDirection = this.leadingEdge.normal();
-    float dot = PVector.dot(cameraDirection, quadDirection);
-    return dot < 0 && this.isWithinScreenBounds();
+    boolean isWithinScreenBounds = this.isWithinScreenBounds();
+    if (this.isVertical) {
+      PVector cameraDirection = new PVector(0, -1, 0);
+      PVector quadDirection = this.leadingEdge.normal();
+      float dot = PVector.dot(cameraDirection, quadDirection);
+      return dot < 0 && isWithinScreenBounds;
+    }
+    return isWithinScreenBounds;
   }
 }
